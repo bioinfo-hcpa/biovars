@@ -13,9 +13,9 @@ setup(
           'pandas>=1.0.5',
           'numpy>=1.19.0',
           'requests>=2.24.0',
-          'seaborn'#,
-          # pynoma,
-          # pyabraom
+          'seaborn',
+          'pynoma',
+          'pyabraom'
       ],
   classifiers=[
     'Development Status :: 3 - Alpha',      
