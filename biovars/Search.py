@@ -1,6 +1,9 @@
+import pandas as pd
 import pynoma
-from biovars.Sources import Sources
-#import pyabraom
+import pyabraom
+
+from .Sources import Sources
+from .Logger import Logger
 
 
 class Search:
@@ -22,7 +25,7 @@ class Search:
         of interest for the search
     """
 
-    def __init__(self, sources:Sources):
+    def __init__(self, sources:Sources, verbose=True):
         self.sources = sources
 
 
@@ -55,3 +58,19 @@ class Search:
     def update_source(self, sources:Sources):
         self.sources = sources
         return
+
+
+
+    # Methods for specific searches:
+    def pynomad_gene_search(self, version:int, genes:list):
+        gene_searches=[]
+        for gene in genes:
+            gene_searches.append(pynoma.GeneSearch(version,gene)) 
+        return pynoma.batch_search(gene_searches, additional_population_info=True)
+
+
+    def pyabraom_gene_search(self, version="hg38", genes:list):
+        dataframes = []
+        for gene in genes:
+            dataframes.append(pyabraom.Search_gene(version, gene, Variant_ID=True))
+        return pd.concat(dataframes)

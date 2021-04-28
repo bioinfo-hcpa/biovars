@@ -18,19 +18,19 @@ class Sources:
     is set to True.
 
     Args:
-        verbose (bool): wheter to log validation messages or hide them
         gnomad2 (bool): whether gnomAD v2.1.1 is to be used in the search
         gnomad3 (bool): whether gnomAD v3.1.1 is to be used in the search
         abraom (bool): whether ABraOM is to be used in the search
+        
+        verbose (bool): wheter to log validation messages or hide them
     """
 
-    def __init__(self, verbose=True, gnomad2=True, gnomad3=True, abraom=True):
+    def __init__(self, gnomad2=True, gnomad3=True, abraom=True, verbose=True):
         self.verbose=verbose
 
-        # Indexes to access the list
-        self.gnomad2=0
-        self.gnomad3=1
-        self.abraom=2
+        self.gnomad2=gnomad2
+        self.gnomad3=gnomad3
+        self.abraom=abraom
 
         # List of booleans for each source
         self.sources_configuration = [gnomad2, gnomad3, abraom]
@@ -57,7 +57,7 @@ class Sources:
 
     def is_transcript_search_valid(self):
         if any(self.sources_configuration):
-            if self.sources_configuration[self.abraom]:
+            if self.abraom:
                 Logger.invalid_region_search_abraom()
                 return False
             else:
