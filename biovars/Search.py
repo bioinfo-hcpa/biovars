@@ -26,6 +26,7 @@ class Search:
     """
 
     def __init__(self, sources:Sources, verbose=True):
+        self.verbose = verbose
         self.sources = sources
 
 
@@ -34,7 +35,23 @@ class Search:
     # symbol
     # Example: ["IDUA", "ACE2", "BAP1"]
     def gene_search(self, genes:list):
-        return
+        if self.sources.is_gene_search_valid():
+            resulting_dataframes = []
+            if self.sources.gnomad2:
+                resulting_dataframes.append(self.pynomad_gene_search(2, genes))
+            if self.sources.gnomad3:
+                resulting_dataframes.append(self.pynomad_gene_search(3, genes))
+            if self.sources.abraom:
+                resulting_dataframes.append(self.pyabraom_gene_search(genes=genes))
+
+            for dataframe in resulting_dataframes:
+                dataframe.dropna(subset = ["rsID"], inplace=True)
+
+            
+
+        else:
+            Logger.invalid_gene_search_sources_returning_none()
+            return None
 
 
     # regions: a list containing the regions of interest for the 
@@ -69,7 +86,7 @@ class Search:
         return pynoma.batch_search(gene_searches, additional_population_info=True)
 
 
-    def pyabraom_gene_search(self, version="hg38", genes:list):
+    def pyabraom_gene_search(self, genes:list, version="hg38"):
         dataframes = []
         for gene in genes:
             dataframes.append(pyabraom.Search_gene(version, gene, Variant_ID=True))

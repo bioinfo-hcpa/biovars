@@ -18,3 +18,9 @@ class Logger:
         log = "Invalid chosen sources for region search: ABraOM does not support transcript searches."
         Logger.handler.info(log)
         return
+
+    @classmethod
+    def invalid_gene_search_sources_returning_none(self):
+        log = "Invalid gene search sources, returning None."
+        Logger.handler.info(log)
+        return
