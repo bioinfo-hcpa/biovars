@@ -5,7 +5,6 @@ import pyabraom
 from .Sources import Sources
 from .Logger import Logger
 
-
 class Search:
 
     """
@@ -25,9 +24,15 @@ class Search:
         of interest for the search
     """
 
-    def __init__(self, sources:Sources, verbose=True):
+
+    def __init__(self, sources: Sources, verbose=True):
         self.verbose = verbose
         self.sources = sources
+
+        self.resulting_dataframes = {
+            "gnomad": None,
+            "abraom": None
+        }
 
 
     # genes: a list containing the genes of interest for the search,
@@ -36,16 +41,28 @@ class Search:
     # Example: ["IDUA", "ACE2", "BAP1"]
     def gene_search(self, genes:list):
         if self.sources.is_gene_search_valid():
-            resulting_dataframes = []
-            if self.sources.gnomad2:
-                resulting_dataframes.append(self.pynomad_gene_search(2, genes))
-            if self.sources.gnomad3:
-                resulting_dataframes.append(self.pynomad_gene_search(3, genes))
-            if self.sources.abraom:
-                resulting_dataframes.append(self.pyabraom_gene_search(genes=genes))
 
-            for dataframe in resulting_dataframes:
-                dataframe.dropna(subset = ["rsID"], inplace=True)
+            if self.sources.version == 19:
+                if self.sources.gnomad:
+                    self.resulting_dataframes["gnomad"] = self.pynoma_gene_search(2, genes)
+                if self.sources.abraom:
+                    self.resulting_dataframes["abraom"] = self.pyabraom_gene_search(genes=genes, version="hg19")
+
+
+            elif self.sources.version == 38:
+                if self.sources.gnomad:
+                    self.resulting_dataframes["gnomad"] = self.pynoma_gene_search(3, genes)
+                if self.sources.abraom:
+                    self.resulting_dataframes["abraom"] = self.pyabraom_gene_search(genes=genes, version="hg38")
+
+
+            else:
+                raise Exception("Error! Unaccepted reference genome version.")
+
+
+
+            #for dataframe in resulting_dataframes:
+            #    dataframe.dropna(subset = ["rsID"], inplace=True)
 
             
 
@@ -79,7 +96,7 @@ class Search:
 
 
     # Methods for specific searches:
-    def pynomad_gene_search(self, version:int, genes:list):
+    def pynoma_gene_search(self, version:int, genes:list):
         gene_searches=[]
         for gene in genes:
             gene_searches.append(pynoma.GeneSearch(version,gene)) 

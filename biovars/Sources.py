@@ -1,5 +1,13 @@
 from .Logger import Logger 
 
+
+ref_genome_map = {
+        "hg19": 19,
+        "grch37": 19,
+        "hg38": 38,
+        "grch38": 38
+    }
+
 class Sources:
 
     """
@@ -18,24 +26,53 @@ class Sources:
     is set to True.
 
     Args:
-        gnomad2 (bool): whether gnomAD v2.1.1 is to be used in the search
-        gnomad3 (bool): whether gnomAD v3.1.1 is to be used in the search
+        ref_genome_version (string): the reference genome version. Provide either 
+            'hg19' or 'hg38', or its equivalents ('GRCh37' or 'GRCh38')
+        gnomad (bool): whether gnomAD database is to be used in the search
         abraom (bool): whether ABraOM is to be used in the search
         
         verbose (bool): wheter to log validation messages or hide them
     """
 
-    def __init__(self, gnomad2=True, gnomad3=True, abraom=True, verbose=True):
+    def __init__(self, ref_genome_version:str, gnomad=False, abraom=False, verbose=True):
         self.verbose=verbose
 
-        self.gnomad2=gnomad2
-        self.gnomad3=gnomad3
+        self.gnomad=gnomad
         self.abraom=abraom
 
         # List of booleans for each source
-        self.sources_configuration = [gnomad2, gnomad3, abraom]
+        self.sources_configuration = [gnomad, abraom]
+
+        self.version = None   # Will be set to either 19 or 38
+        self.init_genome_version(ref_genome_version)
 
     
+
+    def init_genome_version(self, genome_version) -> str:
+        if genome_version.lower() in ref_genome_map:
+            self.version = ref_genome_map[genome_version.lower()]
+        else:
+            raise Exception("Error! Reference genome version unvailable, \
+                             please choose between 'hg19' ('GRCh37') or 'hg38' ('GRCh38')")
+
+
+    def validate_genome_version_with_sources(self):
+
+        gnomad_accepted_versions = [19, 38]
+        abraom_accepted_versions = [19, 38]
+
+        unaccepted_version = Exception("Error! The provided reference genome version is \
+                                        not supported by all the selected database sources!")
+
+        if self.gnomad:
+            if not (self.version in gnomad_accepted_versions):
+                raise unaccepted_version
+        if self.abraom:
+            if not (self.version in abraom_accepted_versions):
+                raise unaccepted_version
+
+    
+
     def is_gene_search_valid(self):
         if any(self.sources_configuration):
             return True
