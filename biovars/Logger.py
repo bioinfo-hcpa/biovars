@@ -51,7 +51,7 @@ class Logger:
 
     @classmethod
     def building_variant_ids_for_abraom(self):
-        log = "Building Variant IDs for abraom variants (using Ensembl)..."
+        log = "Building Variant IDs for ABraOM variants (using Ensembl)..."
         Logger.handler.info(log)
         return
 
@@ -70,5 +70,11 @@ class Logger:
     @classmethod
     def integrating_abraom_data(self):
         log = "Integrating ABraOM variant data..."
+        Logger.handler.info(log)
+        return
+    
+    @classmethod
+    def done(self):
+        log = "Done! :)"
         Logger.handler.info(log)
         return

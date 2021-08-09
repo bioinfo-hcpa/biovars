@@ -110,7 +110,7 @@ class Search:
         dataframes = []
         for gene in genes:
             dataframes.append(pyabraom.Search_gene(version, gene, Variant_ID=True))
-        return pd.concat(dataframes)
+        return pd.concat(dataframes, ignore_index=True)
 
 
 
@@ -120,16 +120,17 @@ class Search:
         final_df = pd.DataFrame(columns=['rsID', 'Gene', 'Annotation', 'Chromosome', 
                                         'Location', 'Reference', 'Alternative'])
 
-        if self.resulting_dataframes["gnomad"] != None:
+        if isinstance(self.resulting_dataframes["gnomad"], pd.DataFrame):
             gnomad_processed = self.prepare_gnomad_integration()
             Logger.integrating_gnomad_data()
             final_df = pd.concat([final_df, gnomad_processed])
 
-        if self.resulting_dataframes["abraom"] != None:
+        if isinstance(self.resulting_dataframes["abraom"], pd.DataFrame):
             abraom_processed = self.prepare_abraom_integration()
             Logger.integrating_abraom_data()
             final_df = self.integrate_abraom(final_df, abraom_processed)
 
+        Logger.done()
         return final_df.fillna(0)
 
 
@@ -151,15 +152,17 @@ class Search:
 
     
     def prepare_abraom_integration(self):
-
-        Logger.processing_abraom_dataframe()
-        processed_df = self.resulting_dataframes["abraom"].rename(columns={'Position': 'Location'})
-        processed_df = self.drop_columns(processed_df)
         
+        processed_df = self.resulting_dataframes["abraom"]
+
         Logger.building_variant_ids_for_abraom()
         version = "hg38" if self.sources.version==38 else "hg19"
         variant_id_freqs = pyabraom.Variant_ID_biovars(processed_df, version)
         
+        Logger.processing_abraom_dataframe()
+        processed_df = processed_df.rename(columns={'Position': 'Location'})
+        processed_df = self.drop_columns(processed_df)
+
         processed_df['Variant ID'] = np.array(variant_id_freqs)[:,0]
         processed_df['Brazilian ABraOM'] = np.array(variant_id_freqs)[:,1]
             
