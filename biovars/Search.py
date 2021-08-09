@@ -130,6 +130,7 @@ class Search:
             Logger.integrating_abraom_data()
             final_df = self.integrate_abraom(final_df, abraom_processed)
 
+        final_df['rsID'] = final_df['rsID'].fillna('')
         Logger.done()
         return final_df.fillna(0)
 
@@ -211,6 +212,7 @@ class Search:
             abraom_no_overlap = abraom_df.loc[~abraom_df.index.isin(same_indexes)]
 
             uncommon = pd.concat([final_no_overlap, abraom_no_overlap])
+            uncommon['rsID'] = uncommon['rsID'].fillna('')
             uncommon = uncommon.fillna(value=0)
             
             # Concatenate common
