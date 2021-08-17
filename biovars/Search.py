@@ -92,7 +92,7 @@ class Search:
             return self.integrate_data()
 
         else:
-            Logger.invalid_region_search_abraom()
+            Logger.invalid_region_search_sources_returning_none()
             return None
 
         return
@@ -119,7 +119,7 @@ class Search:
             return self.integrate_data()
 
         else:
-            Logger.invalid_transcript_search_abraom()
+            Logger.invalid_transcript_search_sources_returning_none()
             return None
         return
 
