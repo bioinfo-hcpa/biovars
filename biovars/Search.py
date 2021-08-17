@@ -94,7 +94,7 @@ class Search:
 
 
 
-    # Methods for specific searches:
+    # Pynoma methods for specific searches:
     def pynoma_gene_search(self, version:int, genes:list):
         Logger.searching_in_gnomad()
 
@@ -104,12 +104,44 @@ class Search:
         return pynoma.batch_search(gene_searches, additional_population_info=True)
 
 
+    def pynoma_region_search(self, version:int, regions:list):
+        Logger.searching_in_gnomad()
+
+        region_searches=[]
+        for region in regions:
+            chromosome, start_pos, end_pos = region.split('-')
+            region_searches.append(pynoma.RegionSearch(version, int(chromosome), 
+                                        int(start_pos), int(end_pos)))
+        return pynoma.batch_search(region_searches, additional_population_info=True)
+
+    
+    def pynoma_transcript_search(self, version:int, transcripts:list):
+        Logger.searching_in_gnomad()
+
+        transcript_searches=[]
+        for transcript in transcripts:
+            transcript_searches.append(pynoma.TranscriptSearch(version,transcript)) 
+        return pynoma.batch_search(transcript_searches, additional_population_info=True)
+
+
+    # Pyabraom methods for specific searches:
     def pyabraom_gene_search(self, genes:list, version="hg38"):
         Logger.searching_in_abraom()
 
         dataframes = []
         for gene in genes:
             dataframes.append(pyabraom.Search_gene(version, gene, Variant_ID=True))
+        return pd.concat(dataframes, ignore_index=True)
+
+
+    def pyabraom_region_search(self, regions:list, version="hg38"):
+        Logger.searching_in_abraom()
+
+        dataframes = []
+        for region in regions:
+            chromosome, start_pos, end_pos = region.split('-')
+            dataframes.append(pyabraom.Search_region(version, int(chromosome), 
+                                        int(start_pos), int(end_pos), Variant_ID=True))
         return pd.concat(dataframes, ignore_index=True)
 
 
