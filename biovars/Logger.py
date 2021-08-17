@@ -14,14 +14,26 @@ class Logger:
         return
 
     @classmethod
-    def invalid_region_search_abraom(sel3f):
-        log = "Invalid chosen sources for region search: ABraOM does not support transcript searches."
+    def invalid_region_search_sources_returning_none(self):
+        log = "Invalid region search sources, returning None."
         Logger.handler.info(log)
         return
 
     @classmethod
     def invalid_gene_search_sources_returning_none(self):
         log = "Invalid gene search sources, returning None."
+        Logger.handler.info(log)
+        return
+
+    @classmethod
+    def invalid_transcript_search_sources_returning_none(self):
+        log = "Invalid transcript search sources, returning None."
+        Logger.handler.info(log)
+        return
+
+    @classmethod
+    def invalid_transcript_search_abraom(self):
+        log = "Invalid chosen sources: ABraOM does not support transcript searches."
         Logger.handler.info(log)
         return
 

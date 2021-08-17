@@ -95,7 +95,7 @@ class Sources:
     def is_transcript_search_valid(self):
         if any(self.sources_configuration):
             if self.abraom:
-                Logger.invalid_region_search_abraom()
+                Logger.invalid_transcript_search_abraom()
                 return False
             else:
                 return True

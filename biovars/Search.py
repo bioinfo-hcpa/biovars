@@ -48,23 +48,19 @@ class Search:
                 if self.sources.gnomad:
                     self.resulting_dataframes["gnomad"] = self.pynoma_gene_search(2, genes)
                 if self.sources.abraom:
-                    self.resulting_dataframes["abraom"] = self.pyabraom_gene_search(genes=genes, version="hg19")
-
+                    self.resulting_dataframes["abraom"] = self.pyabraom_gene_search(genes, version="hg19")
 
             elif self.sources.version == 38:
                 if self.sources.gnomad:
                     self.resulting_dataframes["gnomad"] = self.pynoma_gene_search(3, genes)
                 if self.sources.abraom:
-                    self.resulting_dataframes["abraom"] = self.pyabraom_gene_search(genes=genes, version="hg38")
-
+                    self.resulting_dataframes["abraom"] = self.pyabraom_gene_search(genes, version="hg38")
 
             else:
-                raise Exception("Error! Unaccepted reference genome version.")
-
+                raise Exception("Error! Unaccepted reference genome version: " + str(self.sources.version))
 
             return self.integrate_data()
             
-
         else:
             Logger.invalid_gene_search_sources_returning_none()
             return None
@@ -76,6 +72,29 @@ class Search:
     # position separated by hyphens
     # Example: ["4-987010-1001021", "X-15561033-15602100"]
     def region_search(self, regions:list):
+        if self.sources.is_region_search_valid():
+
+            if self.sources.version == 19:
+                if self.sources.gnomad:
+                    self.resulting_dataframes["gnomad"] = self.pynoma_region_search(2, regions)
+                if self.sources.abraom:
+                    self.resulting_dataframes["abraom"] = self.pyabraom_region_search(regions, version="hg19")
+
+            elif self.sources.version == 38:
+                if self.sources.gnomad:
+                    self.resulting_dataframes["gnomad"] = self.pynoma_region_search(3, regions)
+                if self.sources.abraom:
+                    self.resulting_dataframes["abraom"] = self.pyabraom_region_search(regions, version="hg38")
+
+            else:
+                raise Exception("Error! Unaccepted reference genome version: " + str(self.sources.version))
+
+            return self.integrate_data()
+
+        else:
+            Logger.invalid_region_search_abraom()
+            return None
+
         return
 
 
@@ -84,6 +103,24 @@ class Search:
     # informing the Ensembl transcript id without the dot suffix
     # Example: ["ENST00000252519", "ENST00000369985"]
     def transcript_search(self, transcripts:list):
+        if self.sources.is_transcript_search_valid():
+
+            if self.sources.version == 19:
+                if self.sources.gnomad:
+                    self.resulting_dataframes["gnomad"] = self.pynoma_transcript_search(2, transcripts)
+
+            elif self.sources.version == 38:
+                if self.sources.gnomad:
+                    self.resulting_dataframes["gnomad"] = self.pynoma_transcript_search(3, transcripts)
+
+            else:
+                raise Exception("Error! Unaccepted reference genome version: " + str(self.sources.version))
+
+            return self.integrate_data()
+
+        else:
+            Logger.invalid_transcript_search_abraom()
+            return None
         return
 
 
