@@ -147,8 +147,8 @@ class Search:
         region_searches=[]
         for region in regions:
             chromosome, start_pos, end_pos = region.split('-')
-            region_searches.append(pynoma.RegionSearch(version, int(chromosome), 
-                                        int(start_pos), int(end_pos)))
+            region_searches.append(pynoma.RegionSearch(version, chromosome, 
+                                        start_pos, end_pos))
         return pynoma.batch_search(region_searches, additional_population_info=True)
 
     
@@ -177,7 +177,7 @@ class Search:
         dataframes = []
         for region in regions:
             chromosome, start_pos, end_pos = region.split('-')
-            dataframes.append(pyabraom.Search_region(version, int(chromosome), 
+            dataframes.append(pyabraom.Search_region(version, chromosome, 
                                         int(start_pos), int(end_pos), Variant_ID=True))
         return pd.concat(dataframes, ignore_index=True)
 
