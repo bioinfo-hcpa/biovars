@@ -200,6 +200,7 @@ class Search:
             final_df = self.integrate_abraom(final_df, abraom_processed)
 
         final_df['rsID'] = final_df['rsID'].fillna('')
+        final_df.index.name='Variant ID'
         Logger.done()
         return final_df.fillna(0)
 
