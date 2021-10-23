@@ -1,9 +1,9 @@
 #Functions 
 pop_colors = c("darkgoldenrod2", "lightgoldenrod3", "darkgreen", "orangered3", "magenta4", 
                "royalblue4", "midnightblue", "lavenderblush4", "darkred", "tan4","grey")
-pop_names = c('African', 'Amish', 'Latino', 'Ashkenazi.Jewish',
-              'East.Asian', 'European..Finnish.', 'European..non.Finnish.',
-              'Other', 'South.Asian', 'Middle.Eastern',"Brazilian.ABraOM")
+pop_names = c('African', 'Amish', 'Latino', 'Ashkenazi Jewish',
+              'East Asian', 'European (Finnish)', 'European (non-Finnish)',
+              'Other', 'South Asian', 'Middle Eastern',"Brazilian ABraOM")
 
 names(pop_colors) = pop_names
 
@@ -32,7 +32,7 @@ get_pop_var_lists <- function(populations_dfs=NULL){
   for (pop in populations_dfs){
     
     pop_names[i] <- names(pop)[length(names(pop))]
-    pop_var_lists[[i]] <- c(pop[,"Variant.ID"])
+    pop_var_lists[[i]] <- c(pop[,"Variant ID"])
     i <- i+1
   }
   
@@ -41,15 +41,9 @@ get_pop_var_lists <- function(populations_dfs=NULL){
 }
 
 
-keep_singles <- function(v){
-  v[!(v %in% v[duplicated(v)])] 
-}
-
-
 get_number_of_vars <- function(pop_var_lists){
   all_vars <- unname(unlist(pop_var_lists, recursive = FALSE))
-  unique <- keep_singles(all_vars)
-  return(length(unique))
+  return(length(unique(all_vars)))
 }
 
 barplot_population_variants <- function(num_total, num_common, num_private, pop_name, pop_color, num_all_among_pops,map){
@@ -58,11 +52,11 @@ barplot_population_variants <- function(num_total, num_common, num_private, pop_
     num_all_among_pops = num_total
   }
   
-  if (pop_name == "European..Finnish."){
+  if (pop_name == "European (Finnish)"){
     pop_name <- "Finnish"
-  } else if (pop_name == "European..non.Finnish."){
+  } else if (pop_name == "European (non-Finnish)"){
     pop_name <- "European"
-  }
+ }
   pop_name <- gsub("\\."," ",pop_name)
   
   
@@ -116,7 +110,7 @@ get_all_plots <- function(pops_variants, pop_colors,map){
     num_total <- length(current_variants)
     num_common <- length(intersect(current_variants, all_other_variants))
     num_private <- num_total-num_common 
-    
+
     pop_plot <- barplot_population_variants(num_total, num_common, num_private, current_pop_name, 
                                             pop_colors[current_pop_name][[1]], num_all_among_pops,map)
     
@@ -196,13 +190,6 @@ biovars_map<-function(current_dir, saving_path, plot_list){
 
 
 biovars_plot_list<- function(current_dir, saving_path, df,frequency=0.01,map=FALSE){
-
-  # Dataframe is from biovars 
-  if("Brazilian ABraOM" %in% colnames(df)){
-    new_names<-c("Variant.ID","rsID", "Gene","Annotation","Chromosome", "Location", "Reference","Alternative","African", "Amish", "Latino","Ashkenazi.Jewish",      
-                 "East.Asian","European..Finnish.","European..non.Finnish.", "Other","South.Asian","Middle.Eastern","Brazilian.ABraOM") 
-    colnames(df)<- new_names
-  }
 
   if(map){
     pop_dfs <- get_pop_dfs(df,frequency)
