@@ -11,6 +11,9 @@ class Plotter:
         this_file_path = dirname(__file__)
 
         self.rscripts_path = this_file_path+"/R_plotting_scripts/"
+
+        # Remove R scripts outputs
+        self.utils = rpackages.importr('utils')
         return
 
     @classmethod
@@ -24,24 +27,25 @@ class Plotter:
         return r_from_pandas_df
 
 
-    def plot_world(self, dataframe, frequency=0.01):
+    def plot_world(self, saving_path, dataframe, frequency=0.01):
         self.load_world_plot_libraries()
         r_df = self.convert_pandas_to_r_dataframe(dataframe)
         call = self.rscripts_path + "world_plot.r"
         ro.r.source(call)
-        ro.r["biovars_plot_list"](r_df, frequency, True)
+        self.utils.capture_output(ro.r["biovars_plot_list"](self.rscripts_path, saving_path, r_df, frequency, True))
         return
 
-    def plot_variants_grid(self, dataframe, frequency=0.01):
+    def plot_variants_grid(self, saving_path, dataframe, frequency=0.01):
         self.load_world_plot_libraries()
         r_df = self.convert_pandas_to_r_dataframe(dataframe)
         call = self.rscripts_path + "world_plot.r"
         ro.r.source(call)
-        ro.r["biovars_plot_list"](r_df, frequency, False)
+        self.utils.capture_output(ro.r["biovars_plot_list"](self.rscripts_path, saving_path, r_df, frequency, False))
         return
 
 
     def load_world_plot_libraries(self):
+        """
         rpackages.quiet_require('ggplot2')
         rpackages.quiet_require('ggthemes')
         rpackages.quiet_require('gridExtra')
@@ -50,4 +54,13 @@ class Plotter:
         rpackages.quiet_require('grid')
         rpackages.quiet_require('cowplot')
         rpackages.quiet_require('patchwork')
+        """
+        rpackages.importr('ggplot2')
+        rpackages.importr('ggthemes')
+        rpackages.importr('gridExtra')
+        rpackages.importr('egg')
+        rpackages.importr('png')
+        rpackages.importr('grid')
+        rpackages.importr('cowplot')
+        rpackages.importr('patchwork')
         return

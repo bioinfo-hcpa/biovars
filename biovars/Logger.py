@@ -90,3 +90,9 @@ class Logger:
         log = "Done! :)"
         Logger.handler.info(log)
         return
+
+    @classmethod
+    def installing_r_package(self, package):
+        log = f"Installing '{package}' R package..."
+        Logger.handler.info(log)
+        return

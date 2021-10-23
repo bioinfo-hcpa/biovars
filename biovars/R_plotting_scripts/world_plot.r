@@ -7,16 +7,6 @@ pop_names = c('African', 'Amish', 'Latino', 'Ashkenazi.Jewish',
 
 names(pop_colors) = pop_names
 
-get_reoordered_df <- function(df){
-  col_idx_homo <- grep("Number.of.Homozygotes", names(df))
-  col_idx_hemi <- grep("Number.of.Hemizygotes", names(df))
-  col_len <- length(names(df))
-  
-  return(df[, c(1:col_idx_homo,col_idx_hemi,(col_idx_homo+1):col_len)[-col_idx_hemi-1]])
-}
-
-
-
 get_pop_dfs <- function(df=NULL, freq_threshold=0.01){
   
   col_idx_alternative <- grep("Alternative", names(df))
@@ -139,14 +129,14 @@ get_all_plots <- function(pops_variants, pop_colors,map){
 
 
 
-biovars_map<-function(plot_list){
+biovars_map<-function(current_dir, saving_path, plot_list){
   
   #Search for background image
-  map_file=system("ls -f -R  ~/*/biovars_file_world_map.png", intern = TRUE)
+  map_file <- paste(current_dir, "assets/world_map.png", sep='')
   ima <- readPNG(map_file)
   
   #Create the file 
-  png("rplot_world_view.png", width = 4500, height = 2500, units = "px",family="AvantGarde")
+  png(saving_path, width = 4500, height = 2500, units = "px",family="AvantGarde")
   plot.new()
   lim <- par()
   rasterImage(ima, lim$usr[1],lim$usr[3] ,lim$usr[2] , lim$usr[4])
@@ -205,7 +195,7 @@ biovars_map<-function(plot_list){
 
 
 
-biovars_plot_list<- function(df,frequency=0.01,map=FALSE){
+biovars_plot_list<- function(current_dir, saving_path, df,frequency=0.01,map=FALSE){
 
   # Dataframe is from biovars 
   if("Brazilian ABraOM" %in% colnames(df)){
@@ -213,28 +203,21 @@ biovars_plot_list<- function(df,frequency=0.01,map=FALSE){
                  "East.Asian","European..Finnish.","European..non.Finnish.", "Other","South.Asian","Middle.Eastern","Brazilian.ABraOM") 
     colnames(df)<- new_names
   }
-  # Dataframe is from pynoma only 
-   else{
-     df <- get_reoordered_df(df)
-   }
 
-  #Pot the data based with or without image.
-  if(map==FALSE){
+  if(map){
     pop_dfs <- get_pop_dfs(df,frequency)
     pops_vars <- get_pop_var_lists(pop_dfs)
     num_unique_vars <- get_number_of_vars(pops_vars)
     plot_list <- get_all_plots(pops_vars, pop_colors,map)
-    return(cowplot::plot_grid(plotlist = plot_list, align = "hv"))
+    biovars_map(current_dir, saving_path, plot_list)
   }
-  if(map ==TRUE){
+  else {
     pop_dfs <- get_pop_dfs(df,frequency)
     pops_vars <- get_pop_var_lists(pop_dfs)
     num_unique_vars <- get_number_of_vars(pops_vars)
     plot_list <- get_all_plots(pops_vars, pop_colors,map)
-    biovars_map(plot_list)
+    grid_plot <- cowplot::plot_grid(plotlist = plot_list, align = "hv")
+    ggsave2(saving_path, grid_plot)
   }
 }
-#Teste 
-#data<-read.csv('/home/lola/Documents/BIOVARS/biovars/aqui.csv')
-#biovars_plot_list(data,map=TRUE,frequency=0.8)
 
