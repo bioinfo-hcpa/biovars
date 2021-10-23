@@ -2,18 +2,16 @@ import pandas as pd
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
 import rpy2.robjects.packages as rpackages
+from rpy2.rinterface_lib.callbacks import logger as rpy2_logger
+from logging import ERROR as loggin_error_level
 from os.path import dirname
-import sys
 
 class Plotter: 
 
     def __init__(self):
         this_file_path = dirname(__file__)
-
         self.rscripts_path = this_file_path+"/R_plotting_scripts/"
-
-        # Remove R scripts outputs
-        self.utils = rpackages.importr('utils')
+        rpy2_logger.setLevel(loggin_error_level)
         return
 
     @classmethod
@@ -32,7 +30,7 @@ class Plotter:
         r_df = self.convert_pandas_to_r_dataframe(dataframe)
         call = self.rscripts_path + "world_plot.r"
         ro.r.source(call)
-        self.utils.capture_output(ro.r["biovars_plot_list"](self.rscripts_path, saving_path, r_df, frequency, True))
+        ro.r["biovars_plot_list"](self.rscripts_path, saving_path, r_df, frequency, True)
         return
 
     def plot_variants_grid(self, saving_path, dataframe, frequency=0.01):
@@ -40,7 +38,7 @@ class Plotter:
         r_df = self.convert_pandas_to_r_dataframe(dataframe)
         call = self.rscripts_path + "world_plot.r"
         ro.r.source(call)
-        self.utils.capture_output(ro.r["biovars_plot_list"](self.rscripts_path, saving_path, r_df, frequency, False))
+        ro.r["biovars_plot_list"](self.rscripts_path, saving_path, r_df, frequency, False)
         return
 
 

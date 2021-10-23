@@ -138,44 +138,45 @@ biovars_map<-function(current_dir, saving_path, plot_list){
   #Plot the pops_plots from the list
   vp <- viewport(.2, 0.55,width =.04, height = .10) 
   pl <- plot_list[3]
-  print(pl, vp = vp)
+  invisible(capture.output(print(pl, vp = vp)))
   
   pl2 <- plot_list[6]
   vp2 <- viewport(.53, 0.87, width =.04, height = .10)
-  print(pl2, vp = vp2)
+  invisible(capture.output(print(pl2, vp = vp2)))
   
   pl5 <- plot_list[7]
   vp5 <- viewport(.5, 0.78,width =.04, height = .10)
-  print(pl5, vp = vp5)
+  invisible(capture.output(print(pl5, vp = vp5)))
   
   pl3 <- plot_list[1]
   vp3 <- viewport(.5, 0.5,width =.04, height = .10)
-  print(pl3, vp = vp3)
+  invisible(capture.output(print(pl3, vp = vp3)))
   
   pl4 <- plot_list[5]
   vp4 <- viewport(.73, 0.66,width =.04, height = .10)
-  print(pl4, vp = vp4)
+  invisible(capture.output(print(pl4, vp = vp4)))
   
   pl7 <- plot_list[9]
   vp7 <- viewport(.65, 0.62, width =.04, height = .10)
-  print(pl7, vp = vp7)
+  invisible(capture.output(print(pl7, vp = vp7)))
   
   pl8 <- plot_list[10]
   vp8 <- viewport(.58, 0.6, width =.04, height = .10)
-  print(pl8, vp = vp8)
+  invisible(capture.output(print(pl8, vp = vp8)))
   
   pl10 <- plot_list[2]
   vp10<- viewport(.23, 0.7,width =.04, height = .10)
-  print(pl10, vp = vp10)
+  invisible(capture.output(print(pl10, vp = vp10)))
   
   pl9 <- plot_list[4]
   vp9 <- viewport(.57, 0.7, width =.04, height = .10)
-  print(pl9, vp = vp9)
+  invisible(capture.output(print(pl9, vp = vp9)))
   
   if(length(plot_list)==11){
     pl11 <- plot_list[11]
     vp11 <- viewport(.31, 0.36, width =.04, height = .10)
-    print(pl11, vp = vp11)}
+    invisible(capture.output(print(pl11, vp = vp11)))
+  }
   
   # Legends
   legend(x="bottomleft", legend=c("1.Total Variants", "2.Common Variants","3.Private Variants"),
@@ -204,7 +205,7 @@ biovars_plot_list<- function(current_dir, saving_path, df,frequency=0.01,map=FAL
     num_unique_vars <- get_number_of_vars(pops_vars)
     plot_list <- get_all_plots(pops_vars, pop_colors,map)
     grid_plot <- cowplot::plot_grid(plotlist = plot_list, align = "hv")
-    ggsave2(saving_path, grid_plot)
+    sink_output <- ggsave2(saving_path, grid_plot)
   }
 }
 
