@@ -1,0 +1,916 @@
+---
+title: BIOVARS
+output: 
+  html_document:
+      theme: "spacelab" 
+params:
+  data:
+    value: x
+  genome_version:
+    value: x
+  gene:
+    value: x
+  start:
+    value: x
+  end:
+    value: x
+  abraom:
+    value: x
+  frequency:
+    value: x
+  colorfreqheat:
+    value: x
+  coloranotheat:
+    value: x
+  colortranscript:
+    value: x
+---
+```{r setup, include=FALSE,echo=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+```{r load-packages, include=FALSE,echo=FALSE}
+suppressPackageStartupMessages({
+library(knitr)
+library(ggplot2)
+library(httr)
+library(ggthemes)
+library( httr )
+library(jsonlite )
+library( xml2 )
+library(egg)
+library(png)
+library(grid)
+library(dplyr)
+library(RColorBrewer)
+library(stringr)
+library(gridExtra)
+library(gggenes)
+library(plotly)
+library(cowplot)
+library(patchwork)
+library(DT)
+})
+```
+
+```{r, echo=FALSE}
+filename<-params$data
+genome_version<- params$genome_version
+gene<-params$gene
+start<-params$start
+end<-params$end
+abraom<- params$abraom
+frequency<-params$frequency
+colorfreqheat<-params$colorfreqheat
+coloranotheat<-params$colorfreqheat
+
+
+```
+
+<style type="text/css">
+html,body{
+    overflow-y: auto !important; 
+    overflow-x: hidden !important; 
+    margin:0 auto;
+    max-width:100%;
+}
+
+.navbar-brand {
+ font-size: 30px;
+ font-weight: bold;
+ text-shadow: 3px 3px 5px #777;
+ margin-left: 100px;
+}
+.container-fluid {
+  font-family: "Poppins", sans-serif;
+  font-weight: bold;
+  font-size: 10px;
+  background-color: #212c3b;
+}
+
+.main-container{
+ max-width:90%;
+ background-color: white;
+}
+
+h1.title{
+ color: white;
+}
+
+.navbar-inverse {
+ background-color: transparent !important;
+}
+.popover-title{
+  color: #000000;
+  font-size: 10px;
+  background-color: transparent;
+}
+
+.popover-header{ 
+ color: #000000; 
+ background-color:transparent;
+}
+.popover-content{
+  font-size: 10px;
+  padding: 10px 3px;
+}
+.btn {
+ padding:30px 20px;
+ background-color: transparent;
+ outline: none !important;
+ border: 0px;
+ 
+}
+
+.btn:hover {
+  outline:none !important; 
+  border: 0px;
+}
+.btn:focus {
+     outline:none !important; 
+     border:0px;
+}
+
+#data {
+ overflow-x: auto !important; 
+}
+
+h1{
+padding-bottom: 20px;
+}
+
+</style>
+
+<script>
+$(document).ready(function(){
+  $('[data-toggle="popover"]').popover();
+});
+var abra_info = abraom; 
+if (abra_info == FALSE) { 
+  document.querySelector("#abra").remove(button);  
+} 
+</script>
+ <!----header ---->
+ <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+<div class="container-fluid">
+<div class="navbar-header">
+
+<button id="navbar-button" type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+</button>
+
+<span class="navbar-logo pull-left">
+  
+</span>
+<span class="navbar-brand">
+  BIOVARS
+  <span class="navbar-author">
+        </span>
+</span>
+
+</div>
+<div id="navbar" class="navbar-collapse collapse">
+<ul class="nav navbar-nav navbar-left">
+<li class="active"><a href="#Variant Report" data-toggle="tab" style="top:12px;font-size: 12px;"><span class="fa fa-globe" style="margin-right: 7px;"></span>Variant Report</a></li></ul>
+<ul class="nav navbar-nav navbar-right">
+</ul>
+</div><!--/.nav-collapse-->
+</div><!--/.container-->
+</div>
+
+<!----data ---->
+# Data 
+<div>
+```{r, echo=FALSE}
+if(abraom==FALSE){
+   data<- filename
+   data[,1]<-NULL
+   filename<-data
+}else{
+   data<-filename
+   new_names<-c("Variant.ID","rsID", "Gene","Annotation","Chromosome", "Location","Reference","Alternative" ,                     "African", "Amish", "Latino","Ashkenazi.Jewish","East.Asian","European..Finnish.",                               "European..non.Finnish.", "Other","South.Asian","Middle.Eastern","Brazilian.ABraOM") 
+   colnames(data)<- new_names
+   filename<-data
+}
+datatable(data, filter = 'top', options = list(
+pageLength = 10, autoWidth = TRUE),rownames = FALSE)
+
+
+```
+</div>
+
+
+# Variant Distribution
+<div>
+<center>
+```{r,include=FALSE,echo=FALSE}
+#Functions 
+pop_colors = c("darkgoldenrod2", "lightgoldenrod3", "darkgreen", "orangered3", "magenta4", 
+               "royalblue4", "midnightblue", "lavenderblush4", "darkred", "tan4","grey")
+pop_names = c('African', 'Amish', 'Latino', 'Ashkenazi.Jewish',
+              'East.Asian', 'European..Finnish.', 'European..non.Finnish.',
+              'Other', 'South.Asian', 'Middle.Eastern','Brazilian.ABraOM')
+
+names(pop_colors) = pop_names
+
+get_reoordered_df <- function(df){
+  col_idx_homo <- grep("Number.of.Homozygotes", names(df))
+  col_idx_hemi <- grep("Number.of.Hemizygotes", names(df))
+  col_len <- length(names(df))
+  
+  return(df[, c(1:col_idx_homo,col_idx_hemi,(col_idx_homo+1):col_len)[-col_idx_hemi-1]])
+}
+
+
+
+get_pop_dfs <- function(df=NULL, freq_threshold=frequency){
+  
+  col_idx_alternative <- grep("Alternative", names(df))
+  population_indexes <- c((col_idx_alternative+1):length(names(df)))
+  
+  populations_dfs <- c()
+  i <- 1
+  for (pop_idx in population_indexes){
+    df_temp <- df[, c(1:col_idx_alternative,pop_idx)]
+    populations_dfs[[i]] <- df_temp[df_temp[,ncol(df_temp)] > freq_threshold, ]
+    i <- i + 1
+  }
+  
+  return(populations_dfs)
+}
+
+
+get_pop_var_lists <- function(populations_dfs=NULL){
+  
+  pop_var_lists <- list()
+  pop_names <- c()
+  i <- 1
+  for (pop in populations_dfs){
+    
+    pop_names[i] <- names(pop)[length(names(pop))]
+    pop_var_lists[[i]] <- c(pop[,"Variant.ID"])
+    i <- i+1
+  }
+  
+  names(pop_var_lists) <- pop_names
+  return(pop_var_lists)
+}
+
+
+keep_singles <- function(v){
+  v[!(v %in% v[duplicated(v)])] 
+}
+
+
+get_number_of_vars <- function(pop_var_lists){
+  all_vars <- unname(unlist(pop_var_lists, recursive = FALSE))
+  unique <- keep_singles(all_vars)
+  return(length(unique))
+}
+
+barplot_population_variants <- function(num_total, num_common, num_private, pop_name, pop_color, num_all_among_pops,map){
+  
+  if(num_all_among_pops == 0){
+    num_all_among_pops = num_total
+  }
+  
+  if (pop_name == "European..Finnish."){
+    pop_name <- "Finnish"
+  } else if (pop_name == "European..non.Finnish."){
+    pop_name <- "European"
+  }
+  pop_name <- gsub("\\."," ",pop_name)
+  
+  
+  value <- c(num_total, num_common, num_private, num_all_among_pops-num_total, 
+             num_all_among_pops-num_common, num_all_among_pops-num_private)
+  fill_to_high <- c("Value", "Value", "Value", "toHigh", "toHigh", "toHigh")
+  legend <- c("1", "2", "3", "1", "2", "3")
+  barplot_df <- data.frame(value,legend,fill_to_high)
+  barplot_df$legend = factor(barplot_df$legend, levels = c("1","2","3"))
+  
+  if(map==FALSE){
+    title_size<-15
+    text_size<-10
+  }
+  if(map==TRUE){
+    title_size<-30
+    text_size<-30
+  }
+  return(ggplot(barplot_df, aes(x = legend, y = value, fill=factor(fill_to_high, levels=c("toHigh","Value")))) + 
+           geom_bar(stat = "identity", show.legend = FALSE, width=1, color='black', size=1.8) +
+           scale_fill_manual(values = c("transparent",pop_color)) +
+           labs(x="", y="") + 
+           ggtitle(pop_name) +
+           theme(plot.title = element_text(hjust = 0.5, size=title_size),
+                 text = element_text(size=text_size, face="bold", family="AvantGarde"),
+                 axis.line=element_blank(),
+                 axis.text.x=element_text(color="black", margin=margin(t=-2, b=15)),
+                 axis.text.y=element_blank(),
+                 axis.ticks=element_blank(),
+                 axis.title.x=element_blank(),
+                 axis.title.y=element_blank(),
+                 legend.position="none",
+                 panel.background=element_blank(),
+                 panel.border=element_blank(),
+                 panel.grid.major=element_blank(),
+                 panel.grid.minor=element_blank(),
+                 plot.background=element_blank()))
+}
+
+get_all_plots <- function(pops_variants, pop_colors,map,get_info){
+  
+  num_all_among_pops <- get_number_of_vars(pops_variants)
+  plot_list <- list()
+  
+  i <- 1
+  for(pop in pops_variants){
+    current_variants <- pop
+    current_pop_name <- names(pops_variants)[i]
+    all_other_variants <- unlist(unname(pops_variants[c(1:length(pops_variants))[-i]]))
+    
+    num_total <- length(current_variants)
+    num_common <- length(intersect(current_variants, all_other_variants))
+    num_private <- num_total-num_common 
+    info <- c(current_pop_name,num_total, num_common,num_private)
+    if(get_info == FALSE){
+    pop_plot <- barplot_population_variants(num_total, num_common, num_private, current_pop_name, 
+                                            pop_colors[current_pop_name][[1]], num_all_among_pops,map)
+    
+    plot_list[[i]] <- pop_plot
+    }
+    if(get_info==TRUE){
+       plot_list[[i]] <- info
+    }
+    i <- i+1
+  }
+  
+  return (plot_list)
+}
+
+
+
+biovars_map<-function(plot_list){
+  
+  #Search for background image
+  map_file=system("ls -f -R  ~/*/biovars_file_world_map.png", intern = TRUE)
+  print(map_file)
+  ima <- readPNG(map_file)
+  
+  #Create the file 
+  png("rplot_world_view.png", width = 4500, height = 2500, units = "px",family="AvantGarde")
+  plot.new()
+  lim <- par()
+  rasterImage(ima, lim$usr[1],lim$usr[3] ,lim$usr[2] , lim$usr[4])
+  
+  #Plot the pops_plots from the list
+  vp <- viewport(.2, 0.55,width =.04, height = .10) 
+  pl <- plot_list[3]
+  print(pl, vp = vp)
+  
+  pl2 <- plot_list[6]
+  vp2 <- viewport(.53, 0.87, width =.04, height = .10)
+  print(pl2, vp = vp2)
+  
+  pl5 <- plot_list[7]
+  vp5 <- viewport(.5, 0.78,width =.04, height = .10)
+  print(pl5, vp = vp5)
+  
+  pl3 <- plot_list[1]
+  vp3 <- viewport(.5, 0.5,width =.04, height = .10)
+  print(pl3, vp = vp3)
+  
+  pl4 <- plot_list[5]
+  vp4 <- viewport(.73, 0.66,width =.04, height = .10)
+  print(pl4, vp = vp4)
+  
+  pl7 <- plot_list[9]
+  vp7 <- viewport(.65, 0.62, width =.04, height = .10)
+  print(pl7, vp = vp7)
+  
+  pl8 <- plot_list[10]
+  vp8 <- viewport(.58, 0.6, width =.04, height = .10)
+  print(pl8, vp = vp8)
+  
+  pl10 <- plot_list[2]
+  vp10<- viewport(.23, 0.7,width =.04, height = .10)
+  print(pl10, vp = vp10)
+  
+  pl9 <- plot_list[4]
+  vp9 <- viewport(.57, 0.7, width =.04, height = .10)
+  print(pl9, vp = vp9)
+  
+  if(length(plot_list)==11){
+  pl11 <- plot_list[11]
+  vp11 <- viewport(.31, 0.36, width =.04, height = .10)
+  print(pl11, vp = vp11)}
+  
+  # Legends
+  legend(x="bottomleft", legend=c("1.Total Variants", "2.Common Variants","3.Private Variants"),
+         pch=16, col="grey", title="Variants distribution",cex=4.0,bty = "n")
+  
+  
+  legend(x="bottomright", legend='bioinfo-HCPA', col="grey",cex=2.8,bty = "n")
+  dev.off()
+  
+}
+
+
+
+biovars_plot_list<- function(data,map=FALSE,get_info){
+  #Data
+  `%ni%` = Negate(`%in%`)
+  #BIOVARS
+  if("Brazilian.ABraOM" %in% colnames(data)){
+    df<-data
+  }
+  #pynoma 
+   if("Brazilian.ABraOM" %ni% colnames(data)){
+     df <- get_reoordered_df(data)
+   }
+
+  #Put the data based with or without image.
+  if(get_info == FALSE){
+  if(map==FALSE){
+    pop_dfs <- get_pop_dfs(df)
+    pops_vars <- get_pop_var_lists(pop_dfs)
+    num_unique_vars <- get_number_of_vars(pops_vars)
+    plot_list <- get_all_plots(pops_vars, pop_colors,map,get_info = FALSE)
+    return(cowplot::plot_grid(plotlist = plot_list, align = "hv"))
+  }
+  if(map ==TRUE){
+    pop_dfs <- get_pop_dfs(df)
+    pops_vars <- get_pop_var_lists(pop_dfs)
+    num_unique_vars <- get_number_of_vars(pops_vars)
+    plot_list <- get_all_plots(pops_vars, pop_colors,map,get_info = FALSE)
+    biovars_map(plot_list)
+  }}
+  if(get_info==TRUE){
+    pop_dfs <- get_pop_dfs(df)
+    pops_vars <- get_pop_var_lists(pop_dfs)
+    num_unique_vars <- get_number_of_vars(pops_vars)
+    plot_list <- get_all_plots(pops_vars, pop_colors,map,get_info = TRUE)
+    return(plot_list)
+  }
+}
+
+biovars_plot_list(filename,map=TRUE,get_info=FALSE)
+pop_info=biovars_plot_list(filename,map=TRUE,get_info=TRUE)
+#population information
+for(k in pop_info){
+    if(k[1]=='African'){
+    afr<-paste(paste("Total", k[2]),
+               paste("Common", k[3]),
+               paste("Private",k[4]), sep = "<br/>")}
+    if(k[1]=='European..non.Finnish.'){
+    eur<-paste(paste("Total",k[2]),
+               paste("Common",k[3]),
+               paste("Private",k[4]), sep = "<br/>")}
+    if(k[1]=="European..Finnish."){
+    fin<-paste(paste("Total", k[2]),
+               paste("Common", k[3]),
+               paste("Private",k[4]), sep = "<br/>")}
+    if(k[1]=='Amish'){
+    ami<-paste(paste("Total", k[2]),
+               paste("Common", k[3]),
+               paste("Private",k[4]), sep = "<br/>")}
+    if(k[1]=='Ashkenazi.Jewish'){
+    asj<-paste(paste("Total",k[2]),
+               paste("Common", k[3]),
+               paste("Private",k[3]), sep = "<br/>")}
+    if(k[1]=='Latino'){
+    lat<-paste(paste("Total", k[2]),
+               paste("Common", k[3]),
+               paste("Private",k[4]), sep = "<br/>")}
+    if(k[1]=='Middle.Eastern'){
+    mid<-paste(paste("Total", k[2]),
+               paste("Common", k[3]),
+               paste("Private",k[4]), sep = "<br/>")}
+    if(k[1]=='South.Asian'){
+    sas<-paste(paste("Total", k[2]),
+               paste("Common", k[3]),
+               paste("Private",k[4]), sep = "<br/>")}
+    if(k[1]=='East.Asian'){
+    eas<-paste(paste("Total", k[2]),
+               paste("Common", k[3]),
+               paste("Private",k[4]), sep = "<br/>")}
+    if((k[1]=='Brazilian.ABraOM') && (abraom==TRUE)){
+    abra<-paste(paste("Total", k[2]),
+               paste("Common", k[3]),
+               paste("Private",k[4]), sep = "<br/>")}
+    if (abraom==FALSE){
+       abra='no_plot'}
+       
+}
+
+```
+<img  align="middle" src="rplot_world_view.png" width="1200px" height="600px"  alt="centered image"/>
+
+<button style="position: relative ;top:-340px !important;left: 170px  !important;" type="button" class="btn btn-outline-light" data-toggle="popover" title="African" data-content="`r afr`" data-html="true" >  </button>
+
+<button style="position: relative ;top: -500px !important;left: 130px !important;" type="button" class="btn btn-outline-light" data-toggle="popover" title="European" data-content="`r eur`" data-html="true" >  </button>
+
+
+<button style="position: relative ;top: -570px !important;left: 120px !important;"  type="button" class="btn btn-outline-light" data-toggle="popover" title="Finish" data-content="`r fin`" data-html="true" >  </button> 
+
+
+<button style="position: relative ;top: -460px !important;left: -260px !important;" type="button" class="btn btn-outline-light" data-toggle="popover" title="Amish" data-content="`r ami`" data-html="true" >  </button> 
+
+
+<button style="position: relative ;top: -470px !important;left: 80px !important;" type="button" class="btn btn-outline-light" data-toggle="popover" title="Ashkenazi Jewish" data-content="`r asj`" data-html="true" >  </button> 
+
+
+<button style="position: relative ;top: -370px !important;left: -380px !important;" type="button" class="btn btn-outline-light" data-toggle="popover" title="Latino" data-content="`r lat`" data-html="true" >  </button> 
+
+
+<button  style="position: relative ;top: -390px !important;left: 6px !important;" type="button" class="btn" data-toggle="popover" title="Middle Eastern" data-content="`r mid`" data-html="true" >  </button> 
+
+<button  style="position: relative ;top: -410px !important;left: 40px !important;" type="button" class="btn btn-outline-light" data-toggle="popover" title="South Eastern" data-content="`r sas`" data-html="true" >  </button>
+
+<button style="position: relative ;top: -435px !important;left: 90px !important;" type="button" class="btn btn-outline-light" data-toggle="popover" title="East Asia" data-content="`r eas`" data-html="true" >   </button> 
+
+<button id="abra" style="position: relative ;top: -260px !important;left: -405px !important;" type="button" class="btn btn-outline-light" data-toggle="popover" title="ABraOM" data-content="`r abra`" data-html="true" >   </button> 
+</center>
+</div>
+
+
+# Variant Frequency
+<center>
+```{r,fig.width=6.5,echo=FALSE}
+options(scipen=999)
+
+##hetamap for frequencies and annotations 
+info_to_plot<-function(data,start,end,abraom){
+  '%ni%' <- Negate('%in%')
+  #get the position 
+  start<- as.numeric(start)
+  end<-as.numeric(end)
+  data<-data[(data$Location>start & data$Location<end),]
+  position <- as.numeric(data$Location[])
+  ID <- as.character(data$Variant.ID[])
+  Annotation <- as.character(data$Annotation[])
+  vetor<-vector()
+  vetor2 <- vector()
+  vetor3<-vector()
+  if(abraom==FALSE){
+    for(i in 1:length(position)){
+      vetor<-append(vetor,rep(position[i],10))
+      vetor2<-append(vetor2,rep(ID[i],10))}
+    info<- data.frame(vetor,vetor2)
+    colnames(info)<-c('Position','ID')
+    info['Population']<- rep(c("African",
+                               "Amish",
+                               "Latino",
+                               "Ashkenazi Jewish",
+                               "East Asian",
+                               "European Finnish",
+                               "European",
+                               "Other",
+                               "South Asian",
+                               "Middle Eastern"),length(info$Position)/10)}
+  if(abraom==TRUE){
+    for(i in 1:length(position)){
+      vetor<-append(vetor,rep(position[i],11))
+      vetor2<-append(vetor2,rep(ID[i],11))}
+    info<- data.frame(vetor,vetor2)
+    colnames(info)<-c('Position','ID')
+    info['Population']<- rep(c("African",
+                               "Amish",
+                               "Latino",
+                               "Ashkenazi Jewish",
+                               "East Asian",
+                               "European Finnish",
+                               "European",
+                               "Other",
+                               "South Asian",
+                               "Middle Eastern",
+                               "ABraOM"),length(info$Position)/11)
+  }
+  frequency<- vector()
+  annotation<-vector()
+  begin<-grep("African", colnames(data))
+  for(i in 1:length(data$Location)){
+    for(j in begin:length(colnames(data))){
+      frequency <- append(frequency,data[i,j])
+      if(data[i,j]!=0){
+        annotation<- append(annotation,Annotation[i])
+      }else{
+        annotation<- append(annotation,'No Variant')
+      }}}
+  info['Frequency']<-frequency
+  info['Annotation']<-annotation
+  info$Position<- as.character(info$Position)
+  info$ID <- as.character(info$ID[])
+  split_ID=strsplit(info$ID,'-')
+  dat<-data.frame(t(sapply(split_ID,c)))
+  dat <-dat %>% mutate_if(is.factor, as.character)
+  dat$X3 <- lapply(dat$X3, str_trunc, 2, ellipsis = "")
+  dat$X4 <- lapply(dat$X4, str_trunc, 2, ellipsis = "")
+  info$ID<- as.character(paste(dat$X2,dat$X3,dat$X4,sep='-'))
+  return(info)
+}
+
+
+biovars_plot<- function(data,start,end,abraom=FALSE){
+  info<-info_to_plot(data,start,end,abraom)
+  info_length<-length(unique(info$Position))
+  if(info_length > 53){
+    print('Not acceptable range. Range needs to be equal or less than 53pb or you try to plot a range greater than the data lentgth')
+  }else{
+    min_value <-min(info$Frequency[info$Frequency > 0])
+    max_value<-max(info$Frequency[info$Frequency > 0])
+    gene=data$Gene[1]
+    h<-ggplot(info,aes(x=ID,y=Population,fill=Frequency))+
+        geom_tile(colour = "grey90", size = 0.5)+
+        scale_fill_gradientn(colours = c('grey95',brewer.pal(name='BuPu',n=8)), values = c(0, 0.0001, 1))+
+        coord_fixed(ratio = 1.0)+
+        scale_y_discrete(expand=c(0,0))+
+        scale_x_discrete(expand=c(0,0))+
+        labs(x="Position",y="")+
+        guides(fill = guide_colourbar(barwidth = 1.0, barheight = 7))+
+        theme(text=element_text(family="AvantGarde"),
+              axis.text.y = element_text(size = 10, color='grey10',hjust=0),
+              legend.position="none",
+              axis.text.x = element_text(size = 10, angle= 70,vjust = 0.5, hjust=1,color='grey10', margin = margin(t = 2, r = 20, b = 2, l = 0)),
+              axis.title.x= element_text(size = 10, color='grey10',margin = margin(1.5,0,0,0,unit="cm")))
+      return(h)}}
+
+info<-biovars_plot(data,start,end,abraom=abraom)
+# set axis 
+# set axis 
+y.axisSettings <- list(
+  title ="",
+  showticklabels = T,
+  showgrid =T,
+  ticks = "",
+  labelfont = list(
+    family = 'AvantGarde',
+    color = 'black'
+  )
+)
+x.axisSettings <- list(
+  title = list(text="Variant ID",standoff=20),
+  tickangle = 90,
+  titlefont = list(
+    family = 'AvantGarde',
+    color = 'black'
+  ),
+  showgrid = T
+)
+heat_interactive<-ggplotly(info)%>%layout(
+  xaxis = x.axisSettings,
+  yaxis = y.axisSettings,
+  autosize = F,
+  paper_bgcolor='rgba(0,0,0,0)',
+  plot_bgcolor='rgba(0,0,0,0)')
+style(heat_interactive, xgap = 2,ygap=2,showlegend=FALSE)
+```
+</center>
+
+# Variant Annotation
+<center>
+```{r,fig.width=6.5,echo=FALSE}
+
+options(scipen=999)
+
+info_to_plot<-function(data,start,end,abraom){
+  '%ni%' <- Negate('%in%')
+  #get the position 
+  start<- as.numeric(start)
+  end<-as.numeric(end)
+  data<-data[(data$Location>start & data$Location<end),]
+  position <- as.numeric(data$Location[])
+  ID <- as.character(data$Variant.ID[])
+  Annotation <- as.character(data$Annotation[])
+  vetor<-vector()
+  vetor2 <- vector()
+  vetor3<-vector()
+  if(abraom==FALSE){
+    for(i in 1:length(position)){
+      vetor<-append(vetor,rep(position[i],10))
+      vetor2<-append(vetor2,rep(ID[i],10))}
+    info<- data.frame(vetor,vetor2)
+    colnames(info)<-c('Position','ID')
+    info['Population']<- rep(c("African",
+                               "Amish",
+                               "Latino",
+                               "Ashkenazi Jewish",
+                               "East Asian",
+                               "European Finnish",
+                               "European",
+                               "Other",
+                               "South Asian",
+                               "Middle Eastern"),length(info$Position)/10)}
+  if(abraom==TRUE){
+    for(i in 1:length(position)){
+      vetor<-append(vetor,rep(position[i],11))
+      vetor2<-append(vetor2,rep(ID[i],11))}
+    info<- data.frame(vetor,vetor2)
+    colnames(info)<-c('Position','ID')
+    info['Population']<- rep(c("African",
+                               "Amish",
+                               "Latino",
+                               "Ashkenazi Jewish",
+                               "East Asian",
+                               "European Finnish",
+                               "European",
+                               "Other",
+                               "South Asian",
+                               "Middle Eastern",
+                               "ABraOM"),length(info$Position)/11)
+  }
+  frequency<- vector()
+  annotation<-vector()
+  begin<-grep("African", colnames(data))
+  for(i in 1:length(data$Location)){
+    for(j in begin:length(colnames(data))){
+      frequency <- append(frequency,data[i,j])
+      if(data[i,j]!=0){
+        annotation<- append(annotation,Annotation[i])
+      }else{
+        annotation<- append(annotation,'No Variant')
+      }}}
+  info['Frequency']<-frequency
+  info['Annotation']<-annotation
+  info$Position<- as.character(info$Position)
+  info$ID <- as.character(info$ID[])
+  split_ID=strsplit(info$ID,'-')
+  dat<-data.frame(t(sapply(split_ID,c)))
+  dat <-dat %>% mutate_if(is.factor, as.character)
+  dat$X3 <- lapply(dat$X3, str_trunc, 2, ellipsis = "")
+  dat$X4 <- lapply(dat$X4, str_trunc, 2, ellipsis = "")
+  info$ID<- as.character(paste(dat$X2,dat$X3,dat$X4,sep='-'))
+  return(info)
+}
+
+
+
+biovars_plot<- function(data,start,end,mut=F,abraom=FALSE){
+  info<-info_to_plot(data,start,end,abraom)
+  info_length<-length(unique(info$Position))
+  if(info_length > 80){
+    print('Not acceptable range. Range needs to be equal or less than 80pb or you try to plot a range greater than the data lentgth')
+  }else{
+    min_value <-min(info$Frequency[info$Frequency > 0])
+    max_value<-max(info$Frequency[info$Frequency > 0])
+    gene=data$Gene[1]
+    colours=c('No Variant'='grey95',
+                '5_prime_UTR_variant'='darkgoldenrod2',
+                "start_lost"="lightgoldenrod3",
+                "missense_variant"="darkgreen",
+                "inframe_insertion"="orangered3", 
+                "synonymous_variant"="magenta4",
+                "inframe_deletion"="royalblue4", 
+                "stop_gained"="midnightblue",
+                "frameshift_variant"="lavenderblush4", 
+                "splice_region_variant"="#F58D05", 
+                "intron_variant"="darkred", 
+                "splice_donor_variant"="tan4",
+                "stop_lost"="#485744",
+                "3_prime_UTR_variant"="#FCEC3A")
+      h<-ggplot(info,aes(ID,Population,fill=Annotation))+
+        geom_tile(colour="white",size=0.5)+
+        coord_fixed(ratio = 1.0)+
+        scale_fill_manual(values = colours) +
+        labs(x="Position",y="")+
+        theme(text=element_text(family="AvantGarde"),
+              axis.text.y = element_text(size = 10, color='black',hjust=0),
+              axis.text.x = element_text(size = 10, angle= 90,vjust = 0.5, hjust=1,color='black', margin = margin(t = 2, r = 20, b = 2, l = 0)),
+              axis.title.x= element_text(size = 10, color='black'))
+      return(h)}}
+info<-biovars_plot(filename,start,end,abraom=abraom)
+
+# set axis 
+y.axisSettings <- list(
+  title ="",
+  showticklabels = T,
+  showgrid =T,
+  ticks = "",
+  labelfont = list(
+    family = 'AvantGarde',
+    color = 'black'
+  )
+)
+x.axisSettings <- list(
+  title = list(text="Variant ID",standoff=20),
+  tickangle = 90,
+  titlefont = list(
+    family = 'AvantGarde',
+    color = 'black'
+  ),
+  showgrid = T
+)
+interactive_plot<-ggplotly(info)%>%layout(
+  xaxis = x.axisSettings,
+  yaxis = y.axisSettings,
+  autosize = F,
+  paper_bgcolor='rgba(0,0,0,0)',
+  plot_bgcolor='rgba(0,0,0,0)',
+  showlegend=FALSE)
+
+interactive_plot
+
+```
+
+# Transcript
+<center>
+```{r, fig.width=20,fig.height=10,echo=FALSE}
+#transcript info
+#call data from ensemble
+ensembl_info <- function(gene,version){
+  if (version== 'hg38' | version=='GRCh38'){
+    server <- "http://rest.ensembl.org"
+  }
+  if (version == 'hg19' | version=='GRCh37'){
+    server <- "https://grch37.rest.ensembl.org"
+  }
+  
+  ext <-gsub("v",gene,"/lookup/symbol/homo_sapiens/v?expand=1")
+  r <- GET(paste(server, ext, sep = ""), content_type("application/json"))
+  stop_for_status(r)
+  return(data.frame(fromJSON(toJSON(content(r),))))
+  
+}
+
+#get the data 
+transcript_info <-function(data,version,gene,start,end,canonical_color, ncanonical_color){
+  gene=toupper(gene)
+  resu<-ensembl_info(gene,version)
+  value<-as.numeric(rownames(subset(resu,resu$Transcript.is_canonical==1)))
+  transcript <-data.frame(resu$Transcript.Exon[value])
+  transcript['Transcript_ID']<-rep(as.character(resu$Transcript.id[value]),length(transcript$strand))
+  transcript['Type'] <-rep('Canonical',length(transcript$strand))
+  for(i in 1:length(resu$Transcript.is_canonical)){
+    if(as.numeric(resu$Transcript.is_canonical[i])==0){
+      temp_transcript <-data.frame(resu$Transcript.Exon[i])
+      temp_transcript['Transcript_ID'] <- c(rep(as.character(resu$Transcript.id[i]),length(temp_transcript$strand)))
+      temp_transcript['Type'] <-rep('Non Canonical',length(temp_transcript$strand))
+      transcript <- rbind(transcript,temp_transcript)
+      temp_transcript <-NULL}}
+  transcript$start<-as.numeric(transcript$start)
+  transcript$end<-as.numeric(transcript$end)
+  transcript$Transcript_ID<-as.character(transcript$Transcript_ID)
+  transcript$object_type<-as.character(transcript$object_type)
+  transcript$strand<-as.numeric(transcript$strand)
+  info_start<-(data[which.min(abs(start-data$Location)),])
+  start_pos<-info_start$Location
+  info_end<-(data[which.min(abs(end-data$Location)),])
+  end_pos<-info_end$Location
+  if (start_pos==end_pos){
+    if (start==start_pos){
+      start_pos<- start_pos+1
+    } else{
+      end_pos<-end_pos+1
+    }
+  }
+  if(end_pos<start_pos){
+    out<-transcript[transcript$end>=end_pos & transcript$start<=start_pos, ]
+  }
+  if(end>start){
+    out<-transcript[transcript$end>start & transcript$start<end, ]
+  }
+
+  resu<-plot_transcripts(transcript,gene,canonical_color, ncanonical_color)
+  return(resu)}
+
+
+## plot
+
+plot_transcripts<-function(data,gene,canonical_color, ncanonical_color){
+  ggplot(data, aes(xmin = start, xmax = end, y = Transcript_ID,fill=Type, forward = strand)) +
+    geom_gene_arrow()+
+    scale_fill_manual(values=c(canonical_color, ncanonical_color))+
+    geom_gene_arrow(arrowhead_height = unit(2.5, "mm"), arrowhead_width = unit(2.5, "mm"))+
+    theme_genes()+
+    annotate("rect", xmin=as.numeric(start), xmax=as.numeric(end), ymin=1, ymax=Inf, alpha=0.4, fill="blue",colour='grey')+
+    theme(text=element_text(family="AvantGarde"),
+          axis.text.y = element_text(size = 12, color='grey10',hjust=0),
+          axis.text.x = element_text(),
+          axis.line.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.title.y=element_blank(),
+          panel.border = element_blank(),
+          legend.position = "bottom",
+          legend.title=element_text(size=12),
+          legend.text = element_text(size=12),
+          legend.margin=margin(0,0,0,0),
+          legend.box.margin=margin(20,20,20,20))
+
+}
+if(gene !='None'){
+transcript_info(data,genome_version,gene,as.numeric(start),as.numeric(end),canonical_color = colortranscript[1],ncanonical_color = colortranscript[2])
+}else{
+plot(c(-70,1400),c(1,12),type = "n",axes = FALSE,xlab = "Position",ylab = "")
+segments(x0 = -5,
+         y0 = 9,
+         x1 = 1350,
+         y1 = 9,
+         col = "black",
+         lwd = 2)
+text(x = -60,y = 9,labels = 'Non Transcript',font = 2,cex=1, family="AvantGarde")
+}
+```
+</center>
+

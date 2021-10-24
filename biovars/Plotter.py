@@ -8,9 +8,11 @@ from os.path import dirname
 
 class Plotter: 
 
-    def __init__(self):
+    def __init__(self, dataframe, genome_version="hg38"):
+        self.genome_version = genome_version  #TODO: methods for validating this and accepting multiple formats
         this_file_path = dirname(__file__)
         self.rscripts_path = this_file_path+"/R_plotting_scripts/"
+        self.r_df = self.convert_pandas_to_r_dataframe(dataframe)
         rpy2_logger.setLevel(loggin_error_level)
         return
 
@@ -25,33 +27,37 @@ class Plotter:
         return r_from_pandas_df
 
 
-    def plot_world(self, saving_path, dataframe, frequency=0.01):
+    def plot_world(self, saving_path, frequency=0.01):  #TODO: force extension to be .png (it's the only one that works)
         self.load_world_plot_libraries()
-        r_df = self.convert_pandas_to_r_dataframe(dataframe)
         call = self.rscripts_path + "world_plot.r"
         ro.r.source(call)
-        ro.r["biovars_plot_list"](self.rscripts_path, saving_path, r_df, frequency, True)
+        ro.r["biovars_plot_list"](self.rscripts_path, saving_path, self.r_df, frequency, True)
         return
 
-    def plot_variants_grid(self, saving_path, dataframe, frequency=0.01):
+    def plot_variants_grid(self, saving_path, frequency=0.01):
         self.load_world_plot_libraries()
-        r_df = self.convert_pandas_to_r_dataframe(dataframe)
         call = self.rscripts_path + "world_plot.r"
         ro.r.source(call)
-        ro.r["biovars_plot_list"](self.rscripts_path, saving_path, r_df, frequency, False)
+        ro.r["biovars_plot_list"](self.rscripts_path, saving_path, self.r_df, frequency, False)
         return
 
-    def plot_genomic_region(self, saving_path, dataframe, genome_version, 
-                            starting_region, ending_region, mut=False, 
-                            transcript_region=True):
+    def plot_genomic_region(self, saving_path, starting_region, ending_region, mut=False, transcript_region=True):
         self.load_region_plot_libraries()
-        r_df = self.convert_pandas_to_r_dataframe(dataframe)
         call = self.rscripts_path + "region_plot.r"
         ro.r.source(call)
-        ro.r["biovars_final_plot"](saving_path, r_df, genome_version, 
+        ro.r["biovars_final_plot"](saving_path, self.r_df, self.genome_version, 
                             starting_region, ending_region, mut, transcript_region)
         return
 
+
+    def plot_summary(self, saving_directory, starting_region, ending_region, frequency=0.01):
+        self.load_plot_summary_libraries()
+        call = self.rscripts_path + "plot_summary.r"
+        ro.r.source(call)
+        ro.r["plot_summary"](self.rscripts_path, saving_directory, self.r_df, self.genome_version, 
+                            starting_region, ending_region, frequency)
+        return
+                
 
     def load_world_plot_libraries(self):
         """
@@ -86,4 +92,8 @@ class Plotter:
         rpackages.importr('gridExtra')
         rpackages.importr('gggenes')
         rpackages.importr('cowplot')
+        return
+
+    def load_plot_summary_libraries(self):
+        rpackages.importr('rmarkdown')
         return

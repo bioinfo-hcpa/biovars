@@ -19,7 +19,8 @@ def install_r_packages():
         'dplyr',
         'RColorBrewer',
         'stringr',
-        'gggenes'
+        'gggenes',
+        'rmarkdown'
     ]
 
     for pkg in packages:
