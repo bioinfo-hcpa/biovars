@@ -41,6 +41,17 @@ class Plotter:
         ro.r["biovars_plot_list"](self.rscripts_path, saving_path, r_df, frequency, False)
         return
 
+    def plot_genomic_region(self, saving_path, dataframe, genome_version, 
+                            starting_region, ending_region, mut=False, 
+                            transcript_region=True):
+        self.load_region_plot_libraries()
+        r_df = self.convert_pandas_to_r_dataframe(dataframe)
+        call = self.rscripts_path + "region_plot.r"
+        ro.r.source(call)
+        ro.r["biovars_final_plot"](saving_path, r_df, genome_version, 
+                            starting_region, ending_region, mut, transcript_region)
+        return
+
 
     def load_world_plot_libraries(self):
         """
@@ -61,4 +72,18 @@ class Plotter:
         rpackages.importr('grid')
         rpackages.importr('cowplot')
         rpackages.importr('patchwork')
+        return
+
+    def load_region_plot_libraries(self):
+        rpackages.importr('ggplot2')
+        rpackages.importr('httr')
+        rpackages.importr('jsonlite')
+        rpackages.importr('xml2')
+        rpackages.importr('grid')
+        rpackages.importr('dplyr')
+        rpackages.importr('RColorBrewer')
+        rpackages.importr('stringr')
+        rpackages.importr('gridExtra')
+        rpackages.importr('gggenes')
+        rpackages.importr('cowplot')
         return

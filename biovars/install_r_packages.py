@@ -12,7 +12,14 @@ def install_r_packages():
         'png',
         'grid',
         'cowplot',
-        'patchwork'   
+        'patchwork',
+        'httr',
+        'jsonlite',
+        'xml2',
+        'dplyr',
+        'RColorBrewer',
+        'stringr',
+        'gggenes'
     ]
 
     for pkg in packages:
