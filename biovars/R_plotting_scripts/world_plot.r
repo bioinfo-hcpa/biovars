@@ -1,4 +1,4 @@
-#Functions 
+# Functions 
 pop_colors = c("darkgoldenrod2", "lightgoldenrod3", "darkgreen", "orangered3", "magenta4", 
                "royalblue4", "midnightblue", "lavenderblush4", "darkred", "tan4","grey")
 pop_names = c('African', 'Amish', 'Latino', 'Ashkenazi Jewish',
@@ -190,7 +190,7 @@ biovars_map<-function(current_dir, saving_path, plot_list){
 
 
 
-biovars_plot_list<- function(current_dir, saving_path, df,frequency=0.01,map=FALSE){
+biovars_plot_list<- function(current_dir, saving_path, df, frequency=0.01, map=FALSE){
 
   if(map){
     pop_dfs <- get_pop_dfs(df,frequency)

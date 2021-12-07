@@ -18,7 +18,6 @@ class Plotter:
 
     @classmethod
     def convert_pandas_to_r_dataframe(self, dataframe):
-
         if 'rsID' in dataframe.columns:  # Prevent multi-type (str and float) conversion error
             dataframe["rsID"] = dataframe.astype({'rsID': 'str'})
 
@@ -50,26 +49,19 @@ class Plotter:
         return
 
 
-    def plot_summary(self, saving_directory, starting_region, ending_region, frequency=0.01):
+    #TO-DO: investigate the question about Varian ID being a index colname
+    # specifically, why does it work for the world_plot.r and it doesn't for the
+    # plot_summary.r
+    def plot_summary(self, saving_directory, gene, starting_region, ending_region, frequency=0.01):
         self.load_plot_summary_libraries()
         call = self.rscripts_path + "plot_summary.r"
         ro.r.source(call)
         ro.r["plot_summary"](self.rscripts_path, saving_directory, self.r_df, self.genome_version, 
-                            starting_region, ending_region, frequency)
+                            gene, starting_region, ending_region, frequency)
         return
                 
 
     def load_world_plot_libraries(self):
-        """
-        rpackages.quiet_require('ggplot2')
-        rpackages.quiet_require('ggthemes')
-        rpackages.quiet_require('gridExtra')
-        rpackages.quiet_require('egg')
-        rpackages.quiet_require('png')
-        rpackages.quiet_require('grid')
-        rpackages.quiet_require('cowplot')
-        rpackages.quiet_require('patchwork')
-        """
         rpackages.importr('ggplot2')
         rpackages.importr('ggthemes')
         rpackages.importr('gridExtra')
