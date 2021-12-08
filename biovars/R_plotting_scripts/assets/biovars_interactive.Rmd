@@ -621,6 +621,7 @@ x.axisSettings <- list(
   ),
   showgrid = T
 )
+
 heat_interactive<-ggplotly(info)%>%layout(
   xaxis = x.axisSettings,
   yaxis = y.axisSettings,
@@ -764,6 +765,7 @@ x.axisSettings <- list(
   ),
   showgrid = T
 )
+
 interactive_plot<-ggplotly(info)%>%layout(
   xaxis = x.axisSettings,
   yaxis = y.axisSettings,
@@ -771,7 +773,6 @@ interactive_plot<-ggplotly(info)%>%layout(
   paper_bgcolor='rgba(0,0,0,0)',
   plot_bgcolor='rgba(0,0,0,0)',
   showlegend=FALSE)
-
 interactive_plot
 
 ```

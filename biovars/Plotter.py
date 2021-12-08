@@ -52,6 +52,7 @@ class Plotter:
     #TO-DO: investigate the question about Varian ID being a index colname
     # specifically, why does it work for the world_plot.r and it doesn't for the
     # plot_summary.r
+    # TO-DO: control range input, it can be only at most 53bp 
     def plot_summary(self, saving_directory, gene, starting_region, ending_region, frequency=0.01):
         self.load_plot_summary_libraries()
         call = self.rscripts_path + "plot_summary.r"

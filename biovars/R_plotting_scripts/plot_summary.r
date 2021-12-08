@@ -5,8 +5,7 @@ plot_summary <- function(current_dir, saving_dir, data, genome_version, info_gen
   file <- paste(current_dir, "assets/biovars_interactive.Rmd", sep='')
   world_png_file <- paste(current_dir, "assets/world_map.png", sep='') 
   output_file <- paste(saving_dir, "biovars_summary.html", sep='')
-  print("Output file:")
-  print(output_file)
+
   options(warn=-1)
   `%ni%` = Negate(`%in%`)
   abraom <- 'Brazilian ABraOM' %in% colnames(data)
