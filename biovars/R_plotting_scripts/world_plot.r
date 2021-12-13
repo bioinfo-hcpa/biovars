@@ -189,7 +189,6 @@ biovars_map<-function(current_dir, saving_path, plot_list){
 }
 
 
-
 biovars_plot_list<- function(current_dir, saving_path, df, frequency=0.01, map=FALSE){
 
   if(map){

@@ -4,13 +4,13 @@
 ##hetamap for frequencies and annotations 
 info_to_plot<-function(data,start,end,abraom){
   if(abraom==FALSE){
-    data[1]<- NULL
-  }else{
-    new_names<-c("Variant.ID","rsID", "Gene","Annotation","Chromosome", "Location", "Reference","Alternative","African", "Amish", "Latino","Ashkenazi.Jewish",      
-                 "East.Asian","European..Finnish.","European..non.Finnish.", "Other","South.Asian","Middle.Eastern","Brazilian.ABraOM") 
-    colnames(data)<- new_names
-    df<-data
-  }
+    data[1]<- NULL}
+#  }else{
+#    new_names<-c("Variant.ID","rsID", "Gene","Annotation","Chromosome", "Location", "Reference","Alternative","African", "Amish", "Latino","Ashkenazi.Jewish",      
+#                 "East.Asian","European..Finnish.","European..non.Finnish.", "Other","South.Asian","Middle.Eastern","Brazilian.ABraOM") 
+#    colnames(data)<- new_names
+#    df<-data
+#  }
   #get the position 
   data<-data[(data$Location>start & data$Location<end),]
   position <- as.numeric(data$Location[])
@@ -225,13 +225,16 @@ plot_transcripts<-function(data,gene,start,end,transcript_region,canonical_color
 
 get_legend<-function(h){
   tmp <- ggplot_gtable(ggplot_build(h))
+  print(tmp$grobs)
   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  print("leg: \n\n")
+  print(leg)
   legend <- tmp$grobs[[leg]]
   return(legend)
 }
 
 
-biovars_final_plot <- function(saving_path, data, 
+heat_region_plot <- function(saving_path, data, 
                               version, start, end, mut=F,
                               transcript_region=TRUE,
                               canonical_color="#b3cde3",
