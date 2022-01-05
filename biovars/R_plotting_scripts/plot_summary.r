@@ -1,5 +1,5 @@
 library(rmarkdown)
-plot_summary <- function(current_dir, saving_dir, data, genome_version, info_gene, start, end, frequency,
+plot_summary <- function(current_dir, saving_dir, data, genome_version, info_gene, start, end, frequency,mut=F,
                             colorfreqheat=c("grey96",'#9ab7d0','#8c96c6','#8856a7','#810f7c'),
                             coloranotheat=NULL, colortranscript=c("#b3cde3","#8856a7")){
   file <- paste(current_dir, "assets/biovars_interactive.Rmd", sep='')
@@ -15,7 +15,8 @@ plot_summary <- function(current_dir, saving_dir, data, genome_version, info_gen
                                                                         gene=info_gene,
                                                                         start= as.character(start),
                                                                         end=as.character(end),
-                                                                        abraom= abraom,
+                                                                        abraom=abraom,
+                                                                        mut=F,
                                                                         world_png_file=world_png_file,
                                                                         frequency=frequency,
                                                                         colorfreqheat=colorfreqheat,
@@ -23,5 +24,8 @@ plot_summary <- function(current_dir, saving_dir, data, genome_version, info_gen
   
   
   }
+data= read.csv("/home/lola/Documents/BIOVARS/biovars/biovars/R_plotting_scripts/vars.csv",check.names = FALSE)
+plot_summary( current_dir='/home/lola/Documents/BIOVARS/biovars/biovars/R_plotting_scripts/', saving_dir = '/home/lola/Documents/BIOVARS/biovars/biovars',
+              data=data, genome_version = "hg38", info_gene = "IDUA", start = '1000008',end = '1000102', frequency=0.1,mut=F)
 
 

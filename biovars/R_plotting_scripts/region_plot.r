@@ -1,71 +1,63 @@
+library(ggplot2)
+library(httr)
+library( httr )
+library(jsonlite )
+library( xml2 )
+library(grid)
+library(dplyr)
+library(RColorBrewer)
+library(stringr)
+library(gridExtra)
+library(gggenes)
+library(cowplot)
+library(curl)
 #Plots for frequency and annotation variants 
+data= read.csv("/home/lola/Documents/BIOVARS/biovars/biovars/R_plotting_scripts/gnomad_vars.csv",check.names = FALSE)
 
 #Heatmap
 ##hetamap for frequencies and annotations 
-info_to_plot<-function(data,start,end,abraom){
-  if(abraom==FALSE){
-    data[1]<- NULL}
-#  }else{
-#    new_names<-c("Variant.ID","rsID", "Gene","Annotation","Chromosome", "Location", "Reference","Alternative","African", "Amish", "Latino","Ashkenazi.Jewish",      
-#                 "East.Asian","European..Finnish.","European..non.Finnish.", "Other","South.Asian","Middle.Eastern","Brazilian.ABraOM") 
-#    colnames(data)<- new_names
-#    df<-data
-#  }
+info_to_plot<-function(data,start,end){
+  `%ni%` <- Negate(`%in%`)
+  #get populations names
+  names<-colnames(data)
+  pops_name<-names[9:length(names)]
+  length_pops_name<- length(pops_name)
   #get the position 
   data<-data[(data$Location>start & data$Location<end),]
+  #Verify if data contains any position 
+  if(dim(data)[1]==0 & 0 == length(which(start>=data$Location & end<=data$Location))){
+     print("The data does not contain the range given.Try again by providing another start and end position")
+  }
   position <- as.numeric(data$Location[])
-  ID <- as.character(data$Variant.ID[])
+  ID <- as.character(data$`Variant ID`[])
   Annotation <- as.character(data$Annotation[])
   vetor<-vector()
   vetor2 <- vector()
   vetor3<-vector()
-  if(abraom==FALSE){
-    for(i in 1:length(position)){
-      vetor<-append(vetor,rep(position[i],10))
-      vetor2<-append(vetor2,rep(ID[i],10))}
-    info<- data.frame(vetor,vetor2)
-    colnames(info)<-c('Position','ID')
-    info['Population']<- rep(c("African",
-                               "Amish",
-                               "Latino",
-                               "Ashkenazi Jewish",
-                               "East Asian",
-                               "European Finnish",
-                               "European",
-                               "Other",
-                               "South Asian",
-                               "Middle Eastern"),length(info$Position)/10)}
-  if(abraom==TRUE){
-    for(i in 1:length(position)){
-      vetor<-append(vetor,rep(position[i],11))
-      vetor2<-append(vetor2,rep(ID[i],11))}
-    info<- data.frame(vetor,vetor2)
-    colnames(info)<-c('Position','ID')
-    info['Population']<- rep(c("African",
-                               "Amish",
-                               "Latino",
-                               "Ashkenazi Jewish",
-                               "East Asian",
-                               "European Finnish",
-                               "European",
-                               "Other",
-                               "South Asian",
-                               "Middle Eastern",
-                               "ABraOM"),length(info$Position)/11)
-  }
+  for(i in 1:length(position)){
+      vetor<-append(vetor,rep(position[i],length_pops_name))
+      vetor2<-append(vetor2,rep(ID[i],length_pops_name))}
+  info<- data.frame(vetor,vetor2)
+  colnames(info)<-c('Position','ID')
+  info['Population']<- rep(pops_name[1:length_pops_name],length(info$Position)/length_pops_name)
   frequency<- vector()
   annotation<-vector()
-  begin<-grep("African", colnames(data))
+  begin<-grep(pops_name[1], colnames(data))
+  #Get frequency and annotation information from data
+  frequency<- vector()
+  annotation<-vector()
+  begin<-9
   for(i in 1:length(data$Location)){
-    for(j in begin:length(colnames(data))){
-      frequency <- append(frequency,data[i,j])
-      if(data[i,j]!=0){
-        annotation<- append(annotation,Annotation[i])
-      }else{
-        annotation<- append(annotation,'No Variant')
-      }}}
+      for(j in begin:length(colnames(data))){
+        frequency <- append(frequency,data[i,j])
+        if(data[i,j]!=0){
+          annotation<- append(annotation,Annotation[i])
+        }else{
+          annotation<- append(annotation,'No Variant')
+        }}}
   info['Frequency']<-frequency
   info['Annotation']<-annotation
+  #Adjustments
   info$Position<- as.character(info$Position)
   info$ID <- as.character(info$ID[])
   split_ID=strsplit(info$ID,'-')
@@ -74,13 +66,20 @@ info_to_plot<-function(data,start,end,abraom){
   dat$X3 <- lapply(dat$X3, str_trunc, 2, ellipsis = "")
   dat$X4 <- lapply(dat$X4, str_trunc, 2, ellipsis = "")
   info$ID<- as.character(paste(dat$X2,dat$X3,dat$X4,sep='-'))
-  return(info)
-}
+  return(info)}
 
-biovars_plot<- function(data,start,end,mut=F,abraom=FALSE){
+
+
+# RESU=info_to_plot(data,'1000008','1000102') # for pynoma # error message for start and end position exchange
+# RESU=info_to_plot(data,'19837682','19837697') # for pynoma
+# resu=info_to_plot(data,'987070','987270') #for abraom
+#resu1=info_to_plot(data,'1000008','1000102')  #for biovars
+
+
+biovars_plot<- function(data,start,end,mut=F){
   start<-as.numeric(start)
   end<-as.numeric(end)
-  info<-info_to_plot(data,start,end,abraom)
+  info<-info_to_plot(data,start,end)
   info_length<-length(unique(info$ID))
   if(info_length > 80){
     return('Not acceptable range. Range needs to be equal or less than 80nt or you try to plot a range greater than the data lentgth')
@@ -122,20 +121,29 @@ biovars_plot<- function(data,start,end,mut=F,abraom=FALSE){
                 "upstream"='magenta')
       h<-ggplot(info,aes(ID,Population,fill=Annotation))+
         geom_tile(colour="white",size=0.5)+
-        coord_fixed(ratio = 1.0)+
+        coord_fixed(ratio = 0.9)+
         scale_fill_manual(values = colours) +
         labs(x="Position",y="")+
         theme(text=element_text(family="AvantGarde"),
               axis.text.y = element_text(size = 8, color='grey10',hjust=0),
+              panel.background = element_blank(),
               legend.text = element_text(size=8),
+              legend.position = "bottom",
               legend.title = element_text(size=8),
               axis.text.x = element_text(size = 7, angle= 70,vjust = 0.5, hjust=1,color='grey10', margin = margin(t = 2, r = 20, b = 2, l = 0)),
               axis.title.x= element_text(size = 10, color='grey10',margin = margin(1.5,0,0,0,unit="cm"),face = "bold",))
       h<-h+guides(fill=guide_legend(nrow=2,byrow=TRUE))
       return(h)}}}
 
-#transcript info
-#call data from ensemble
+# Test examples
+#biovars_plot(data,'19837682','19837697',mut=F) # for pynoma
+#biovars_plot(data,'1000008','1000102',mut=F)   #for abraom and biovars
+#biovars_plot(data,'19837682','19837697',mut=T) # for pynoma
+#biovars_plot(data,'1000008','1000102',mut=T)   #for abraom and biovars
+
+
+#TRANSCRIPT INFORMATION
+#Get data from ensembl
 ensembl_info <- function(gene,version){
   if (version== 'hg38' | version=='GRCh38'){
     server <- "http://rest.ensembl.org"
@@ -199,8 +207,7 @@ transcript_info <-function(data,version,gene,start,end,
 }
 
 
-## plot
-
+# Plot transcript information
 plot_transcripts<-function(data,gene,start,end,transcript_region,canonical_color, ncanonical_color){
   t<-ggplot(data, aes(xmin = start, xmax = end, y = Transcript_ID,fill=Type, forward = strand)) +
   geom_gene_arrow()+
@@ -220,42 +227,54 @@ plot_transcripts<-function(data,gene,start,end,transcript_region,canonical_color
     t<-t+annotate("rect", xmin=as.numeric(start), xmax=as.numeric(end), ymin=1, ymax=Inf, 
                   alpha=0.4, fill="blue",colour='grey')
   }
+
   t<-t+guides(fill=guide_legend(nrow=1,byrow=TRUE))
 }
 
+#Get legend 
 get_legend<-function(h){
   tmp <- ggplot_gtable(ggplot_build(h))
-  print(tmp$grobs)
   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-  print("leg: \n\n")
-  print(leg)
   legend <- tmp$grobs[[leg]]
   return(legend)
 }
 
 
+#Plot heat with and without transcripts (final plot)
+
+# You can set the color of transcripts with canonical_color and ncanonical_color parameters,
+# I will implement the same in heatmap for mut=F and mut=T to see annotation for each variant
+#Transcript_region to show all transcript length or just the region where the region falls.
+#If transcript_region==False, it shows all transcripts length and a shadow in the regions that
+#was select to view variants.
+
 heat_region_plot <- function(saving_path, data, 
-                              version, start, end, mut=F,
+                              version, start, end, mut,
                               transcript_region=TRUE,
                               canonical_color="#b3cde3",
                               ncanonical_color="#8856a7"){
 
-  abraom='Brazilian ABraOM' %in% colnames(data)
-  heat<-biovars_plot(data,start,end,mut,abraom)
+  abraom='Brazilian ABraOM' %in% colnames(data) # we do not need it anymore.
+  heat<-biovars_plot(data,start,end,mut)
   data<-data[(data$Location> start & data$Location<end),]
   gene<- unique(data$Gene)
-
   if (length(gene)==1 && gene != 'None'){
     legendheat<-get_legend(heat)
     heat <- heat + theme(legend.position="none")
+    if(mut==T){ legend_pos="left"}else{legend_pos="top"}
     trasncripts_annotation<- transcript_info(data,version,gene,as.numeric(start),
                                             as.numeric(end),transcript_region,
                                             canonical_color, ncanonical_color)
+    trasncripts_annotation<-trasncripts_annotation+guides(fill=guide_legend(title.position = legend_pos))
     legendtranscript<-get_legend(trasncripts_annotation)
     trasncripts_annotation <- trasncripts_annotation + theme(legend.position="none")
     legend<- rbind(legendheat, legendtranscript)
     g<-plot_grid(heat, trasncripts_annotation, nrow = 2, rel_heights = c(1/2.5, 1/4))
-    ga <- plot_grid(g ,legend, nrow = 2, rel_heights = c(1/2, 1/9))
+    if(mut==F){
+       ga <- plot_grid(g ,legend, ncol = 2,rel_widths = c(1/1,1/6))
+    }else{
+      ga <- plot_grid(g ,legend, nrow = 2, rel_heights = c(1/2, 1/9))
+    }
     ggsave(file=saving_path, ga, width = 15, height = 8)
 
   } else{
@@ -266,28 +285,8 @@ heat_region_plot <- function(saving_path, data,
   }  
 }
 
-# You can set the color of transcripts with canonical_color and ncanonical_color parameters,
-# I will implement the same in heatmap for mut=F and mut=T to see annotation for each variant
-#Transcript_region to show all transcript length or just the region where the region falls.
-#If transcript_region==False, it shows all transcripts length and a shadow in the regions that
-#was select to view variants.
-#examples to test
-
-#biovars_final_plot(data,"hg38",'15561846','15562546',mut=F,transcript_region=TRUE,save_plot=FALSE)
-#biovars_final_plot(data,"hg38",'15561846','15562546',mut=T,transcript_region=TRUE,save_plot=TRUE)
-
-#ANOTHER REGION
-
-#biovars_final_plot(data,"hg38",'15595033','15595620',mut=F,transcript_region=FALSE,save_plot=FALSE)
-#biovars_final_plot(data,"hg38",'15595033','15595620',mut=T,transcript_region=FALSE,save_plot=TRUE)
-
-
-#ANOTHER REGION
-#biovars_final_plot(data,"hg38",'15595033','15595090',mut=F,transcript_region=FALSE,save_plot=FALSE)
-#biovars_final_plot(data,"hg38",'15595033','15595090',mut=T,transcript_region=FALSE,save_plot=TRUE)
-
-#ANOTHER REGION
-#biovars_final_plot(data,"hg38",'15600652','15600835',mut=F,transcript_region=FALSE,save_plot=FALSE)
-#biovars_final_plot(data,"hg38",'15600652','15600835',mut=T,transcript_region=TRUE,save_plot=TRUE)
-
-
+#TEST EXAMPLES
+heat_region_plot('aqui.pdf',data,"hg38",'1000008','1000102',mut=T,transcript_region=TRUE) #biovars and abraom
+heat_region_plot('aqui.pdf',data,"hg38",'1000008','1000102',mut=F,transcript_region=TRUE) #biovars and abraom
+heat_region_plot('aqui.pdf',data,"hg38",'19837682','19837697',mut=T,transcript_region=TRUE) #pynoma
+heat_region_plot('aqui.pdf',data,"hg38",'19837682','19837697',mut=F,transcript_region=TRUE) #pynoma
