@@ -24,8 +24,3 @@ plot_summary <- function(current_dir, saving_dir, data, genome_version, info_gen
   
   
   }
-data= read.csv("/home/lola/Documents/BIOVARS/biovars/biovars/R_plotting_scripts/vars.csv",check.names = FALSE)
-plot_summary( current_dir='/home/lola/Documents/BIOVARS/biovars/biovars/R_plotting_scripts/', saving_dir = '/home/lola/Documents/BIOVARS/biovars/biovars',
-              data=data, genome_version = "hg38", info_gene = "IDUA", start = '1000008',end = '1000102', frequency=0.1,mut=F)
-
-

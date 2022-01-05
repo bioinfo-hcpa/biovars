@@ -19,7 +19,7 @@ class Plotter:
     @classmethod
     def convert_pandas_to_r_dataframe(self, dataframe):
         if 'rsID' in dataframe.columns:  # Prevent multi-type (str and float) conversion error
-            dataframe["rsID"] = dataframe.astype({'rsID': 'str'})
+            dataframe = dataframe.astype({'rsID': 'str'})
 
         with ro.conversion.localconverter(ro.default_converter + pandas2ri.converter):
             r_from_pandas_df = ro.conversion.py2rpy(dataframe.reset_index())
@@ -50,6 +50,7 @@ class Plotter:
 
 
     # TO-DO: control range input, it can be only at most 53bp 
+    # TO-DO: check if region inside the table
     def plot_summary(self, saving_directory, gene, starting_region, ending_region, frequency=0.01):
         self.load_plot_summary_libraries()
         call = self.rscripts_path + "plot_summary.r"

@@ -11,8 +11,6 @@ library(gridExtra)
 library(gggenes)
 library(cowplot)
 library(curl)
-#Plots for frequency and annotation variants 
-data= read.csv("/home/lola/Documents/BIOVARS/biovars/biovars/R_plotting_scripts/gnomad_vars.csv",check.names = FALSE)
 
 #Heatmap
 ##hetamap for frequencies and annotations 
@@ -68,12 +66,6 @@ info_to_plot<-function(data,start,end){
   info$ID<- as.character(paste(dat$X2,dat$X3,dat$X4,sep='-'))
   return(info)}
 
-
-
-# RESU=info_to_plot(data,'1000008','1000102') # for pynoma # error message for start and end position exchange
-# RESU=info_to_plot(data,'19837682','19837697') # for pynoma
-# resu=info_to_plot(data,'987070','987270') #for abraom
-#resu1=info_to_plot(data,'1000008','1000102')  #for biovars
 
 
 biovars_plot<- function(data,start,end,mut=F){
@@ -134,12 +126,6 @@ biovars_plot<- function(data,start,end,mut=F){
               axis.title.x= element_text(size = 10, color='grey10',margin = margin(1.5,0,0,0,unit="cm"),face = "bold",))
       h<-h+guides(fill=guide_legend(nrow=2,byrow=TRUE))
       return(h)}}}
-
-# Test examples
-#biovars_plot(data,'19837682','19837697',mut=F) # for pynoma
-#biovars_plot(data,'1000008','1000102',mut=F)   #for abraom and biovars
-#biovars_plot(data,'19837682','19837697',mut=T) # for pynoma
-#biovars_plot(data,'1000008','1000102',mut=T)   #for abraom and biovars
 
 
 #TRANSCRIPT INFORMATION
@@ -285,8 +271,3 @@ heat_region_plot <- function(saving_path, data,
   }  
 }
 
-#TEST EXAMPLES
-heat_region_plot('aqui.pdf',data,"hg38",'1000008','1000102',mut=T,transcript_region=TRUE) #biovars and abraom
-heat_region_plot('aqui.pdf',data,"hg38",'1000008','1000102',mut=F,transcript_region=TRUE) #biovars and abraom
-heat_region_plot('aqui.pdf',data,"hg38",'19837682','19837697',mut=T,transcript_region=TRUE) #pynoma
-heat_region_plot('aqui.pdf',data,"hg38",'19837682','19837697',mut=F,transcript_region=TRUE) #pynoma

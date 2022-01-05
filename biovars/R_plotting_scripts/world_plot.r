@@ -9,7 +9,6 @@ names(pop_colors) = pop_names
 
 get_pop_dfs <- function(df=NULL, freq_threshold=0.01){
   
-  #col_idx_alternative <- grep("Alternative", names(df)) # They start to get from column Alternative more one. 
   col_idx_alternative <- 8
   population_indexes <- c((col_idx_alternative+1):length(names(df)))
   populations_dfs <- c()
@@ -178,7 +177,7 @@ biovars_map<-function(current_dir, saving_path, plot_list){
     invisible(capture.output(print(pl11, vp = vp11)))
   }else{
     pl3 <- plot_list[1]
-    vp3 <- viewport(.5, 0.5,width =.04, height = .10)
+    vp3 <- viewport(.31, 0.36,width =.04, height = .10)
     invisible(capture.output(print(pl3, vp = vp3)))
   }
   
@@ -200,7 +199,6 @@ biovars_plot_list<- function(current_dir, saving_path, df, frequency=0.01, map=F
     pops_vars <- get_pop_var_lists(pop_dfs)
     num_unique_vars <- get_number_of_vars(pops_vars)
     plot_list <- get_all_plots(pops_vars, pop_colors,map)
-    saving_path=paste(saving_path,'.png',sep='')  # Add ext in the enf of file
     biovars_map(current_dir, saving_path, plot_list)
   }
   else {
@@ -209,13 +207,6 @@ biovars_plot_list<- function(current_dir, saving_path, df, frequency=0.01, map=F
     num_unique_vars <- get_number_of_vars(pops_vars)
     plot_list <- get_all_plots(pops_vars, pop_colors,map)
     grid_plot <- cowplot::plot_grid(plotlist = plot_list, align = "hv") 
-    saving_path=paste(saving_path,'.pdf',sep='') # Add ext in the end of file
     sink_output <- ggsave2(saving_path, grid_plot)
   }
 }
-
-#TESTE
-#Plots for frequency and annotation variants 
-data= read.csv("/home/lola/Documents/BIOVARS/biovars/biovars/R_plotting_scripts/ace2.csv",check.names = FALSE)
-biovars_plot_list('/home/lola/Documents/BIOVARS/biovars/biovars/R_plotting_scripts/', 'aqui2',data,map=TRUE) #abraom,pynoma and biovars
-
