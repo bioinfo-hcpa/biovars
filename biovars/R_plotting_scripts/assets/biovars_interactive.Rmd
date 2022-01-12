@@ -61,16 +61,6 @@ pdebug <- function(printable){
   cat(printable,file="/home/colombelli/debug.txt",append=TRUE)
 }
 
-filename<-params$data
-genome_version<- params$genome_version
-gene<-params$gene
-start<-params$start
-end<-params$end
-abraom<- params$abraom
-frequency<-params$frequency
-colorfreqheat<-params$colorfreqheat
-coloranotheat<-params$colorfreqheat
-
 ```
 
 <style type="text/css">
@@ -216,16 +206,14 @@ pop_names = c('African', 'Amish', 'Latino', 'Ashkenazi Jewish',
 
 names(pop_colors) = pop_names
 
-
 get_pop_dfs <- function(df=NULL, freq_threshold=0.01){
   
-  col_idx_alternative <- grep("Alternative", names(df))
+  #col_idx_alternative <- grep("Alternative", names(df)) # They start to get from column Alternative more one. 
+  col_idx_alternative <- 8
   population_indexes <- c((col_idx_alternative+1):length(names(df)))
-  
   populations_dfs <- c()
   i <- 1
   for (pop_idx in population_indexes){
-    if (is.na(names(df)[pop_idx])) break
     df_temp <- df[, c(1:col_idx_alternative,pop_idx)]
     populations_dfs[[i]] <- df_temp[df_temp[,ncol(df_temp)] > freq_threshold, ]
     i <- i + 1
@@ -241,10 +229,12 @@ get_pop_var_lists <- function(populations_dfs=NULL){
   pop_names <- c()
   i <- 1
   for (pop in populations_dfs){
+    
     pop_names[i] <- names(pop)[length(names(pop))]
     pop_var_lists[[i]] <- c(pop[,"Variant ID"])
     i <- i+1
   }
+  
   
   names(pop_var_lists) <- pop_names
   return(pop_var_lists)
@@ -256,7 +246,7 @@ get_number_of_vars <- function(pop_var_lists){
   return(length(unique(all_vars)))
 }
 
-barplot_population_variants <- function(num_total, num_common, num_private, pop_name, pop_color, num_all_among_pops){
+barplot_population_variants <- function(num_total, num_common, num_private, pop_name, pop_color, num_all_among_pops,map){
   
   if(num_all_among_pops == 0){
     num_all_among_pops = num_total
@@ -277,9 +267,14 @@ barplot_population_variants <- function(num_total, num_common, num_private, pop_
   barplot_df <- data.frame(value,legend,fill_to_high)
   barplot_df$legend = factor(barplot_df$legend, levels = c("1","2","3"))
   
-  title_size<-30
-  text_size<-30
-  
+  if(map==FALSE){
+    title_size<-15
+    text_size<-10
+  }
+  if(map==TRUE){
+    title_size<-30
+    text_size<-30
+  }
   return(ggplot(barplot_df, aes(x = legend, y = value, fill=factor(fill_to_high, levels=c("toHigh","Value")))) + 
            geom_bar(stat = "identity", show.legend = FALSE, width=1, color='black', size=1.8) +
            scale_fill_manual(values = c("transparent",pop_color)) +
@@ -301,7 +296,7 @@ barplot_population_variants <- function(num_total, num_common, num_private, pop_
                  plot.background=element_blank()))
 }
 
-get_all_plots <- function(pops_variants, pop_colors, get_info){
+get_all_plots <- function(pops_variants, pop_colors,map,get_info){
   
   num_all_among_pops <- get_number_of_vars(pops_variants)
   plot_list <- list()
@@ -316,16 +311,15 @@ get_all_plots <- function(pops_variants, pop_colors, get_info){
     num_common <- length(intersect(current_variants, all_other_variants))
     num_private <- num_total-num_common 
     info <- c(current_pop_name,num_total, num_common,num_private)
-    if(get_info == FALSE){
     pop_plot <- barplot_population_variants(num_total, num_common, num_private, current_pop_name, 
-                                            pop_colors[current_pop_name][[1]], num_all_among_pops)
+                                            pop_colors[current_pop_name][[1]], num_all_among_pops,map)
     
     plot_list[[i]] <- pop_plot
-    }
-    if(get_info==TRUE){
+    if(get_info){
        plot_list[[i]] <- info
     }
     i <- i+1
+    
   }
   
   return (plot_list)
@@ -333,12 +327,14 @@ get_all_plots <- function(pops_variants, pop_colors, get_info){
 
 
 
-biovars_map <- function(plot_list){
+biovars_map<-function(current_dir, saving_path, plot_list){
   
-  ima <- readPNG(world_png_file)
+  #Search for background image
+  map_file <- paste(current_dir, "assets/world_map.png", sep='')
+  ima <- readPNG(map_file)
   
   #Create the file 
-  png("rplot_world_view.png", width = 4500, height = 2500, units = "px",family="AvantGarde")
+  png(saving_path, width = 4500, height = 2500, units = "px",family="AvantGarde")
   plot.new()
   lim <- par()
   rasterImage(ima, lim$usr[1],lim$usr[3] ,lim$usr[2] , lim$usr[4])
@@ -346,44 +342,53 @@ biovars_map <- function(plot_list){
   #Plot the pops_plots from the list
   vp <- viewport(.2, 0.55,width =.04, height = .10) 
   pl <- plot_list[3]
-  print(pl, vp = vp)
+  invisible(capture.output(print(pl, vp = vp)))
   
   pl2 <- plot_list[6]
   vp2 <- viewport(.53, 0.87, width =.04, height = .10)
-  print(pl2, vp = vp2)
+  invisible(capture.output(print(pl2, vp = vp2)))
   
   pl5 <- plot_list[7]
   vp5 <- viewport(.5, 0.78,width =.04, height = .10)
-  print(pl5, vp = vp5)
-  
-  pl3 <- plot_list[1]
-  vp3 <- viewport(.5, 0.5,width =.04, height = .10)
-  print(pl3, vp = vp3)
+  invisible(capture.output(print(pl5, vp = vp5)))
   
   pl4 <- plot_list[5]
   vp4 <- viewport(.73, 0.66,width =.04, height = .10)
-  print(pl4, vp = vp4)
+  invisible(capture.output(print(pl4, vp = vp4)))
   
   pl7 <- plot_list[9]
   vp7 <- viewport(.65, 0.62, width =.04, height = .10)
-  print(pl7, vp = vp7)
+  invisible(capture.output(print(pl7, vp = vp7)))
   
   pl8 <- plot_list[10]
   vp8 <- viewport(.58, 0.6, width =.04, height = .10)
-  print(pl8, vp = vp8)
+  invisible(capture.output(print(pl8, vp = vp8)))
   
   pl10 <- plot_list[2]
   vp10<- viewport(.23, 0.7,width =.04, height = .10)
-  print(pl10, vp = vp10)
+  invisible(capture.output(print(pl10, vp = vp10)))
   
   pl9 <- plot_list[4]
   vp9 <- viewport(.57, 0.7, width =.04, height = .10)
-  print(pl9, vp = vp9)
+  invisible(capture.output(print(pl9, vp = vp9)))
   
   if(length(plot_list)==11){
-  pl11 <- plot_list[11]
-  vp11 <- viewport(.31, 0.36, width =.04, height = .10)
-  print(pl11, vp = vp11)}
+    pl3 <- plot_list[1]
+    vp3 <- viewport(.5, 0.5,width =.04, height = .10)
+    invisible(capture.output(print(pl3, vp = vp3)))
+    
+    pl11 <- plot_list[11]
+    vp11 <- viewport(.31, 0.36, width =.04, height = .10)
+    invisible(capture.output(print(pl11, vp = vp11)))}
+  if(length(plot_list)==1){
+    pl3 <- plot_list[1]
+    vp3 <- viewport(.31, 0.36, width =.04, height = .10)
+    invisible(capture.output(print(pl3, vp = vp3)))
+  }
+  if(length(plot_list)==10){
+    pl3 <- plot_list[1]
+    vp3 <- viewport(.5, 0.5,width =.04, height = .10)
+    invisible(capture.output(print(pl3, vp = vp3)))}
   
   # Legends
   legend(x="bottomleft", legend=c("1.Total Variants", "2.Common Variants","3.Private Variants"),
@@ -396,29 +401,36 @@ biovars_map <- function(plot_list){
 }
 
 
-
-biovars_plot_list<- function(df, get_info){
-
-  # Put the data based with or without image.
-  if(get_info) {
-    pop_dfs <- get_pop_dfs(df)
+biovars_plot_list<- function(current_dir, saving_path, df, frequency=0.01, map=FALSE,info=FALSE){
+  
+  
+  if(map){
+    pop_dfs <- get_pop_dfs(df,frequency)
     pops_vars <- get_pop_var_lists(pop_dfs)
     num_unique_vars <- get_number_of_vars(pops_vars)
-    plot_list <- get_all_plots(pops_vars, pop_colors, get_info)
-    return(plot_list)
+    plot_list <- get_all_plots(pops_vars, pop_colors,map,info)
+    biovars_map(current_dir, saving_path, plot_list)
   }
-
   else {
-    pop_dfs <- get_pop_dfs(df)
+  
+    pop_dfs <- get_pop_dfs(df,frequency)
     pops_vars <- get_pop_var_lists(pop_dfs)
     num_unique_vars <- get_number_of_vars(pops_vars)
-    plot_list <- get_all_plots(pops_vars, pop_colors, get_info)
-    biovars_map(plot_list)
+    plot_list <- get_all_plots(pops_vars, pop_colors,map,info)
+    grid_plot <- cowplot::plot_grid(plotlist = plot_list, align = "hv") 
+    sink_output <- ggsave2(saving_path, grid_plot)
   }
+  info_pop_names=names(pops_vars)
+  if(info){
+    info_pop <- get_all_plots(pops_vars, pop_colors,map,info)
+    return(info_pop)
+    }
 }
 
-biovars_plot_list(filename, get_info=FALSE)
-pop_info=biovars_plot_list(filename, get_info=TRUE)
+biovars_plot_list('/home/lola/Documents/BIOVARS/biovars/biovars/R_plotting_scripts/', 'rplot_world_view',data,map=TRUE,info=FALSE)
+pop_info=biovars_plot_list('/home/lola/Documents/BIOVARS/biovars/biovars/R_plotting_scripts/', 'aqui2.pdf',data,map=FALSE,info=TRUE)
+
+
 
 # Population information
 for(k in pop_info){
@@ -504,65 +516,44 @@ for(k in pop_info){
 options(scipen=999)
 
 ##hetamap for frequencies and annotations 
-info_to_plot<-function(data,start,end,abraom){
-  '%ni%' <- Negate('%in%')
+info_to_plot<-function(data,start,end){
+  `%ni%` <- Negate(`%in%`)
+  #get populations names
+  names<-colnames(data)
+  pops_name<-names[9:length(names)]
+  length_pops_name<- length(pops_name)
   #get the position 
-  start<- as.numeric(start)
-  end<-as.numeric(end)
   data<-data[(data$Location>start & data$Location<end),]
   position <- as.numeric(data$Location[])
-  ID <- as.character(data$'Variant ID'[])
+  ID <- as.character(data$`Variant ID`[])
   Annotation <- as.character(data$Annotation[])
   vetor<-vector()
   vetor2 <- vector()
   vetor3<-vector()
-  if(abraom==FALSE){
-    for(i in 1:length(position)){
-      vetor<-append(vetor,rep(position[i],10))
-      vetor2<-append(vetor2,rep(ID[i],10))}
-    info<- data.frame(vetor,vetor2)
-    colnames(info)<-c('Position','ID')
-    info['Population']<- rep(c("African",
-                               "Amish",
-                               "Latino",
-                               "Ashkenazi Jewish",
-                               "East Asian",
-                               "European Finnish",
-                               "European",
-                               "Other",
-                               "South Asian",
-                               "Middle Eastern"),length(info$Position)/10)}
-  if(abraom==TRUE){
-    for(i in 1:length(position)){
-      vetor<-append(vetor,rep(position[i],11))
-      vetor2<-append(vetor2,rep(ID[i],11))}
-    info<- data.frame(vetor,vetor2)
-    colnames(info)<-c('Position','ID')
-    info['Population']<- rep(c("African",
-                               "Amish",
-                               "Latino",
-                               "Ashkenazi Jewish",
-                               "East Asian",
-                               "European Finnish",
-                               "European",
-                               "Other",
-                               "South Asian",
-                               "Middle Eastern",
-                               "ABraOM"),length(info$Position)/11)
-  }
+  for(i in 1:length(position)){
+      vetor<-append(vetor,rep(position[i],length_pops_name))
+      vetor2<-append(vetor2,rep(ID[i],length_pops_name))}
+  info<- data.frame(vetor,vetor2)
+  colnames(info)<-c('Position','ID')
+  info['Population']<- rep(pops_name[1:length_pops_name],length(info$Position)/length_pops_name)
   frequency<- vector()
   annotation<-vector()
-  begin<-grep("African", colnames(data))
+  begin<-grep(pops_name[1], colnames(data))
+  #Get frequency and annotation information from data
+  frequency<- vector()
+  annotation<-vector()
+  begin<-9
   for(i in 1:length(data$Location)){
-    for(j in begin:length(colnames(data))){
-      frequency <- append(frequency,data[i,j])
-      if(data[i,j]!=0){
-        annotation<- append(annotation,Annotation[i])
-      }else{
-        annotation<- append(annotation,'No Variant')
-      }}}
+      for(j in begin:length(colnames(data))){
+        frequency <- append(frequency,data[i,j])
+        if(data[i,j]!=0){
+          annotation<- append(annotation,Annotation[i])
+        }else{
+          annotation<- append(annotation,'No Variant')
+        }}}
   info['Frequency']<-frequency
   info['Annotation']<-annotation
+  #Adjustments
   info$Position<- as.character(info$Position)
   info$ID <- as.character(info$ID[])
   split_ID=strsplit(info$ID,'-')
@@ -571,12 +562,10 @@ info_to_plot<-function(data,start,end,abraom){
   dat$X3 <- lapply(dat$X3, str_trunc, 2, ellipsis = "")
   dat$X4 <- lapply(dat$X4, str_trunc, 2, ellipsis = "")
   info$ID<- as.character(paste(dat$X2,dat$X3,dat$X4,sep='-'))
-  return(info)
-}
+  return(info)}
 
-
-biovars_plot<- function(data,start,end,abraom=FALSE){
-  info<-info_to_plot(data,start,end,abraom)
+biovars_plot<- function(data,start,end){
+  info<-info_to_plot(data,start,end)
   info_length<-length(unique(info$Position))
   if(info_length > 53){
     print('Not acceptable range. Range needs to be equal or less than 53pb or you try to plot a range greater than the data lentgth')
@@ -598,9 +587,7 @@ biovars_plot<- function(data,start,end,abraom=FALSE){
               axis.text.x = element_text(size = 10, angle= 70,vjust = 0.5, hjust=1,color='grey10', margin = margin(t = 2, r = 20, b = 2, l = 0)),
               axis.title.x= element_text(size = 10, color='grey10',margin = margin(1.5,0,0,0,unit="cm")))
       return(h)}}
-
-info<-biovars_plot(data,start,end,abraom=abraom)
-# set axis 
+info<-biovars_plot(data,start,end)
 # set axis 
 y.axisSettings <- list(
   title ="",
@@ -621,7 +608,6 @@ x.axisSettings <- list(
   ),
   showgrid = T
 )
-
 heat_interactive<-ggplotly(info)%>%layout(
   xaxis = x.axisSettings,
   yaxis = y.axisSettings,
@@ -635,68 +621,45 @@ style(heat_interactive, xgap = 2,ygap=2,showlegend=FALSE)
 # Variant Annotation
 <center>
 ```{r,fig.width=6.5,echo=FALSE}
-
 options(scipen=999)
-
-info_to_plot<-function(data,start,end,abraom){
-  '%ni%' <- Negate('%in%')
+info_to_plot<-function(data,start,end){
+  `%ni%` <- Negate(`%in%`)
+  #get populations names
+  names<-colnames(data)
+  pops_name<-names[9:length(names)]
+  length_pops_name<- length(pops_name)
   #get the position 
-  start<- as.numeric(start)
-  end<-as.numeric(end)
   data<-data[(data$Location>start & data$Location<end),]
   position <- as.numeric(data$Location[])
-  ID <- as.character(data$'Variant ID'[])
+  ID <- as.character(data$`Variant ID`[])
   Annotation <- as.character(data$Annotation[])
   vetor<-vector()
   vetor2 <- vector()
   vetor3<-vector()
-  if(abraom==FALSE){
-    for(i in 1:length(position)){
-      vetor<-append(vetor,rep(position[i],10))
-      vetor2<-append(vetor2,rep(ID[i],10))}
-    info<- data.frame(vetor,vetor2)
-    colnames(info)<-c('Position','ID')
-    info['Population']<- rep(c("African",
-                               "Amish",
-                               "Latino",
-                               "Ashkenazi Jewish",
-                               "East Asian",
-                               "European Finnish",
-                               "European",
-                               "Other",
-                               "South Asian",
-                               "Middle Eastern"),length(info$Position)/10)}
-  if(abraom==TRUE){
-    for(i in 1:length(position)){
-      vetor<-append(vetor,rep(position[i],11))
-      vetor2<-append(vetor2,rep(ID[i],11))}
-    info<- data.frame(vetor,vetor2)
-    colnames(info)<-c('Position','ID')
-    info['Population']<- rep(c("African",
-                               "Amish",
-                               "Latino",
-                               "Ashkenazi Jewish",
-                               "East Asian",
-                               "European Finnish",
-                               "European",
-                               "Other",
-                               "South Asian",
-                               "Middle Eastern",
-                               "ABraOM"),length(info$Position)/11)
-  }
+  for(i in 1:length(position)){
+      vetor<-append(vetor,rep(position[i],length_pops_name))
+      vetor2<-append(vetor2,rep(ID[i],length_pops_name))}
+  info<- data.frame(vetor,vetor2)
+  colnames(info)<-c('Position','ID')
+  info['Population']<- rep(pops_name[1:length_pops_name],length(info$Position)/length_pops_name)
   frequency<- vector()
   annotation<-vector()
-  begin<-grep("African", colnames(data))
+  begin<-grep(pops_name[1], colnames(data))
+  #Get frequency and annotation information from data
+  frequency<- vector()
+  annotation<-vector()
+  begin<-9
   for(i in 1:length(data$Location)){
-    for(j in begin:length(colnames(data))){
-      frequency <- append(frequency,data[i,j])
-      if(data[i,j]!=0){
-        annotation<- append(annotation,Annotation[i])
-      }else{
-        annotation<- append(annotation,'No Variant')
-      }}}
+      for(j in begin:length(colnames(data))){
+        frequency <- append(frequency,data[i,j])
+        if(data[i,j]!=0){
+          annotation<- append(annotation,Annotation[i])
+        }else{
+          annotation<- append(annotation,'No Variant')
+        }}}
   info['Frequency']<-frequency
   info['Annotation']<-annotation
+  #Adjustments
   info$Position<- as.character(info$Position)
   info$ID <- as.character(info$ID[])
   split_ID=strsplit(info$ID,'-')
@@ -705,13 +668,10 @@ info_to_plot<-function(data,start,end,abraom){
   dat$X3 <- lapply(dat$X3, str_trunc, 2, ellipsis = "")
   dat$X4 <- lapply(dat$X4, str_trunc, 2, ellipsis = "")
   info$ID<- as.character(paste(dat$X2,dat$X3,dat$X4,sep='-'))
-  return(info)
-}
+  return(info)}
 
-
-
-biovars_plot<- function(data,start,end,mut=F,abraom=FALSE){
-  info<-info_to_plot(data,start,end,abraom)
+biovars_plot<- function(data,start,end,mut=T){
+  info<-info_to_plot(data,start,end)
   info_length<-length(unique(info$Position))
   if(info_length > 80){
     print('Not acceptable range. Range needs to be equal or less than 80pb or you try to plot a range greater than the data lentgth')
@@ -743,8 +703,7 @@ biovars_plot<- function(data,start,end,mut=F,abraom=FALSE){
               axis.text.x = element_text(size = 10, angle= 90,vjust = 0.5, hjust=1,color='black', margin = margin(t = 2, r = 20, b = 2, l = 0)),
               axis.title.x= element_text(size = 10, color='black'))
       return(h)}}
-info<-biovars_plot(filename,start,end,abraom=abraom)
-
+info<-biovars_plot(data,start,end)
 # set axis 
 y.axisSettings <- list(
   title ="",
@@ -765,7 +724,6 @@ x.axisSettings <- list(
   ),
   showgrid = T
 )
-
 interactive_plot<-ggplotly(info)%>%layout(
   xaxis = x.axisSettings,
   yaxis = y.axisSettings,
@@ -774,8 +732,8 @@ interactive_plot<-ggplotly(info)%>%layout(
   plot_bgcolor='rgba(0,0,0,0)',
   showlegend=FALSE)
 interactive_plot
-
 ```
+</center>
 
 # Transcript
 <center>
@@ -796,7 +754,6 @@ ensembl_info <- function(gene,version){
   return(data.frame(fromJSON(toJSON(content(r),))))
   
 }
-
 #get the data 
 transcript_info <-function(data,version,gene,start,end,canonical_color, ncanonical_color){
   gene=toupper(gene)
@@ -834,13 +791,9 @@ transcript_info <-function(data,version,gene,start,end,canonical_color, ncanonic
   if(end>start){
     out<-transcript[transcript$end>start & transcript$start<end, ]
   }
-
   resu<-plot_transcripts(transcript,gene,canonical_color, ncanonical_color)
   return(resu)}
-
-
 ## plot
-
 plot_transcripts<-function(data,gene,canonical_color, ncanonical_color){
   ggplot(data, aes(xmin = start, xmax = end, y = Transcript_ID,fill=Type, forward = strand)) +
     geom_gene_arrow()+
@@ -860,7 +813,6 @@ plot_transcripts<-function(data,gene,canonical_color, ncanonical_color){
           legend.text = element_text(size=12),
           legend.margin=margin(0,0,0,0),
           legend.box.margin=margin(20,20,20,20))
-
 }
 if(gene !='None'){
 transcript_info(data,genome_version,gene,as.numeric(start),as.numeric(end),canonical_color = colortranscript[1],ncanonical_color = colortranscript[2])
@@ -876,4 +828,3 @@ text(x = -60,y = 9,labels = 'Non Transcript',font = 2,cex=1, family="AvantGarde"
 }
 ```
 </center>
-
