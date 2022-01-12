@@ -1,5 +1,5 @@
 library(rmarkdown)
-plot_summary <- function(current_dir, saving_dir, data, genome_version, info_gene, start, end, frequency,mut=F,
+plot_summary <- function(current_dir, saving_dir, data, genome_version, info_gene, start, end, frequency,
                             colorfreqheat=c("grey96",'#9ab7d0','#8c96c6','#8856a7','#810f7c'),
                             coloranotheat=NULL, colortranscript=c("#b3cde3","#8856a7")){
   file <- paste(current_dir, "assets/biovars_interactive.Rmd", sep='')
@@ -16,7 +16,6 @@ plot_summary <- function(current_dir, saving_dir, data, genome_version, info_gen
                                                                         start= as.character(start),
                                                                         end=as.character(end),
                                                                         abraom=abraom,
-                                                                        mut=F,
                                                                         world_png_file=world_png_file,
                                                                         frequency=frequency,
                                                                         colorfreqheat=colorfreqheat,
