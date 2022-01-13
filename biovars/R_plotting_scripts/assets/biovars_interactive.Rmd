@@ -59,8 +59,19 @@ library(DT)
 ```{r, echo=FALSE}
 pdebug <- function(printable){
   cat(printable,file="/home/colombelli/debug.txt",append=TRUE)
+  
 }
 
+#Params to variables #Do not clean this!
+data= params$data
+gene=params$gene
+start=params$start
+end=params$end
+world_png_file=params$world_png_file
+frequency=params$frequency
+colorfreqheat=params$colorfreqheat
+colorfreqheat=params$coloranotheat
+colortranscript=params$colortranscript
 ```
 
 <style type="text/css">
@@ -314,9 +325,10 @@ get_all_plots <- function(pops_variants, pop_colors,map,get_info){
     pop_plot <- barplot_population_variants(num_total, num_common, num_private, current_pop_name, 
                                             pop_colors[current_pop_name][[1]], num_all_among_pops,map)
     
-    plot_list[[i]] <- pop_plot
     if(get_info){
        plot_list[[i]] <- info
+    }else{
+      plot_list[[i]] <- pop_plot
     }
     i <- i+1
     
@@ -401,34 +413,34 @@ biovars_map<-function(current_dir, saving_path, plot_list){
 }
 
 
-biovars_plot_list<- function(current_dir, saving_path, df, frequency=0.01, map=FALSE,info=FALSE){
+biovars_plot_list<- function(current_dir, saving_path, df, frequency=0.01, map=FALSE){
   
   
   if(map){
     pop_dfs <- get_pop_dfs(df,frequency)
     pops_vars <- get_pop_var_lists(pop_dfs)
     num_unique_vars <- get_number_of_vars(pops_vars)
-    plot_list <- get_all_plots(pops_vars, pop_colors,map,info)
+    plot_list <- get_all_plots(pops_vars, pop_colors,map,get_info=FALSE)
     biovars_map(current_dir, saving_path, plot_list)
+    info_pop <- get_all_plots(pops_vars, pop_colors,map,get_info=TRUE)
+    return(info_pop)
   }
   else {
   
     pop_dfs <- get_pop_dfs(df,frequency)
     pops_vars <- get_pop_var_lists(pop_dfs)
     num_unique_vars <- get_number_of_vars(pops_vars)
-    plot_list <- get_all_plots(pops_vars, pop_colors,map,info)
+    plot_list <- get_all_plots(pops_vars, pop_colors,map,get_info=FALSE)
     grid_plot <- cowplot::plot_grid(plotlist = plot_list, align = "hv") 
     sink_output <- ggsave2(saving_path, grid_plot)
   }
-  info_pop_names=names(pops_vars)
-  if(info){
-    info_pop <- get_all_plots(pops_vars, pop_colors,map,info)
-    return(info_pop)
-    }
-}
 
-biovars_plot_list('/home/lola/Documents/BIOVARS/biovars/biovars/R_plotting_scripts/', 'rplot_world_view',data,map=TRUE,info=FALSE)
-pop_info=biovars_plot_list('/home/lola/Documents/BIOVARS/biovars/biovars/R_plotting_scripts/', 'aqui2.pdf',data,map=FALSE,info=TRUE)
+
+
+}
+image <- tempfile(fileext = "rplot_world_view.png")
+pop_info=biovars_plot_list(current_dir, image,data,map=TRUE)
+
 
 
 
@@ -480,7 +492,7 @@ for(k in pop_info){
 }
 
 ```
-<img  align="middle" src="rplot_world_view.png" width="1200px" height="600px"  alt="centered image"/>
+<img  align="middle" src="`r image`" width="1200px" height="600px"  alt="centered image"/>
 
 <button style="position: relative ;top:-340px !important;left: 170px  !important;" type="button" class="btn btn-outline-light" data-toggle="popover" title="African" data-content="`r afr`" data-html="true" >  </button>
 
