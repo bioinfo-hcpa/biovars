@@ -23,8 +23,5 @@ plot_summary <- function(current_dir, saving_dir, data, genome_version, info_gen
   
   
 }
-data= read.csv("/home/lola/Documents/BIOVARS/biovars_/biovars/R_plotting_scripts/ace2.csv",check.names = FALSE)
-plot_summary( current_dir='/home/lola/Documents/BIOVARS/biovars/biovars/R_plotting_scripts/', saving_dir = '/home/lola/Documents/BIOVARS/biovars/',
-              data=data, genome_version = "hg38", info_gene = "ace2", start = '15600935',end = '15600982', frequency=0)
 
 
