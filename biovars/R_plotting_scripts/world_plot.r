@@ -1,6 +1,6 @@
 # Functions 
 pop_colors = c("darkgoldenrod2", "lightgoldenrod3", "darkgreen", "orangered3", "magenta4", 
-               "royalblue4", "midnightblue", "lavenderblush4", "darkred", "tan4","grey")
+               "royalblue4", "midnightblue", "lavenderblush4", "darkred", "tan4","white")
 pop_names = c('African', 'Amish', 'Latino', 'Ashkenazi Jewish',
               'East Asian', 'European (Finnish)', 'European (non-Finnish)',
               'Other', 'South Asian', 'Middle Eastern',"Brazilian ABraOM")
