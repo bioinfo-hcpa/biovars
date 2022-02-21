@@ -37,7 +37,7 @@ Plots only a grid with the population variants count in terms of private, common
 plt.plot_variants_grid("/home/user/path/", 0.01)
 ```
 
-_Plotter.plot_genomic_region(saving_path: str, starting_region: int, ending_region: int, mut: bool = False, transcript_region: bool = True):_ <br>
+_Plotter.plot_genomic_region(saving_path: str, starting_region: int, ending_region: int, mut: bool = False, transcript_region: bool = True)_ <br>
 Plots the genomic region whithin the specified start and end range (max. of 54bp) with the transcripts and where each one falls, as well as the frequency of each type of variant found in the dataframe along the specified region. This region must be contained inside the Potter dataframe.
 * saving_path: the path where the file is to be saved
 * starting_region: where the region of interest starts (must be present in the Plotter input dataframe)
@@ -47,3 +47,11 @@ Plots the genomic region whithin the specified start and end range (max. of 54bp
 ```python
 plt.plot_genomic_region("/home/user/path/", 987027, 987068, False, True)
 ```
+
+_Plotter.plot_summary(saving_directory: str, gene: str, starting_region: int, ending_region: int , frequency: float = 0.01)_ <br>
+Generates an HTML file containing the above plots and a table with the Search resulting dataframe to more easily visualize this information along with the plots.
+* saving_path: the path where the file is to be saved
+* gene: among the genes inside the Plotter input dataframe, which one is to be used
+* starting_region: where the region of interest starts (must be present in the Plotter input dataframe)
+* ending_region: where the region of interest ends (must be present in the Plotter input dataframe)
+* frequency: how frequent a variant have to be in the population to be counted as "present" in that population
