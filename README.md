@@ -55,3 +55,6 @@ Generates an HTML file containing the above plots and a table with the Search re
 * starting_region: where the region of interest starts (must be present in the Plotter input dataframe)
 * ending_region: where the region of interest ends (must be present in the Plotter input dataframe)
 * frequency: how frequent a variant have to be in the population to be counted as "present" in that population
+```python
+plt.plot_summary("/home/user/path/", "idua", 987027, 987068, 0.01)
+```
