@@ -7,6 +7,61 @@ Tool for joining all the bioinfo-hcpa's variant information retrieval APIs.
 
 ### Installation
 
+Currently there is not a PyPI version for the APIs, so the installation needs that you clone their repository and install them as local packages.
+
+    $ git clone https://github.com/bioinfo-hcpa/pynoma.git
+    $ git clone https://github.com/bioinfo-hcpa/pyABraOM.git
+    $ git clone https://github.com/bioinfo-hcpa/biovars.git
+    $ pip install -e pynoma
+    $ pip install -e pyABraOM
+    $ pip install -e biovars
+    
+After that, if you want to utilize the BIOVARS Plotter class, you also need to install R (widely SO-dependent, thus not covered here) and all the packages used for building the plots.
+
+    $ R
+    > pkgs <- c("ggplot2", "ggthemes", "gridExtra", "egg", "png", "grid", "cowboy", "patchwork", "httr", "jsonlite", "xml2", "dplyr", "RColorBrewer", "stringr", "gggenes")
+    > install.packages(pkgs)
+
+### Searching for variants
+
+The BIOVARS package can perform searches by genes, genome regions or transcripts. However, not all database sources accept the three types of searches, so a Sources object need to be created in order for this validation to occur.
+Currently there are only two databases, but in the future more will be added.
+
+The Sources class expects as parameters:
+* ref_genome_version (str): the reference genome version (either "hg38" or "hg37")
+* gnomad (bool): whether to search on gnomad database
+* abraom (bool): whether to search on abraom database
+* verbose (bool): whether to log validation messages
+
+The Search class excpects as parameters:
+* sources (biovars.Sources): the initialized Sources object
+* verbose (bool): whether to log searching status messages
+```python
+from biovars import Sources, Search
+src = Sources(ref_genome_version="hg38", gnomad=True, abraom=True)
+sch = Search(src, verbose=True)
+```
+
+#### Search by genes
+The gene_search method expects as parameter a list of genes (list[str]): the list of gene symbols of interest.
+```python
+genes = ["idua", "ace2", "brca"]
+sch.gene_search(genes)
+```
+
+#### Search by regions
+The region_search method expects as parameter a list of genome regions (list[str]): each item composed of "chromosome-start_region-end_region".
+```python
+regions = ["4-987010-1001021", "X-15561033-15602100"]
+sch.region_search(regions)
+```
+
+#### Search by transcripts
+The transcript_search method expects as parameter a list of transcripts (list[str]): the list of ensembl transcript ids of interest.
+```python
+transcripts = ["ENST00000252519", "ENST00000369985"]
+sch.transcript_search(transcripts)
+```
 
 ### Plotting the results
 
