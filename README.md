@@ -28,7 +28,7 @@ The BIOVARS package can perform searches by genes, genome regions or transcripts
 Currently there are only two databases, but in the future more will be added.
 
 The Sources class expects as parameters:
-* ref_genome_version (str): the reference genome version (either "hg38" or "hg37")
+* ref_genome_version (str): the reference genome version (either "GRCh37/hg19" or "GRCh38/hg38")
 * gnomad (bool): whether to search on gnomad database
 * abraom (bool): whether to search on abraom database
 * verbose (bool): whether to log validation messages
