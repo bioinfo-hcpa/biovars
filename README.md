@@ -1,5 +1,6 @@
 # BIOVARS
-Tool for joining all the bioinfo-hcpa's variant information retrieval APIs.
+![](https://img.shields.io/badge/python-v3.x-blue)
+![](https://img.shields.io/badge/R-v4.x-red)
 
 ## Summary
 
