@@ -1,9 +1,19 @@
-# biovars
+# BIOVARS
 Tool for joining all the bioinfo-hcpa's variant information retrieval APIs.
+
+## Summary
+
+- [Introduction](#introduction)
+- [Installation](#installation)
+- [Searching for variants](#searching-for-variants)
+    - [Search by genes](#search-by-genes)
+    - [Search by regions](#search-by-regions)
+    - [Search by transcripts](#search-by-transcripts)
+- [Plotting the results](#plotting-the-results)
 
 
 ### Introduction
-
+BIOVARS is a Python API for joining all the other human variant retrival APIs built by the Bioinformatics Core of Hospital de Clínicas de Porto Alegre. With BIOVARS, it is possible to perform variant searches both in gnomAD and ABraOM databases, both that have their personal APIs (Pynoma and PyABraOM). In the future, more databases will be added to BIOVARS aiming to provide a greater level of data heterogeneity in a single centralized solution, which is easy to use and proper to automate complex bioinformatics pipelines.
 
 ### Installation
 
