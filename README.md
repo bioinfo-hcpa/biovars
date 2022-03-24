@@ -57,7 +57,7 @@ sch = Search(src, verbose=True)
 #### Search by genes
 The gene_search method expects as parameter a list of genes (list[str]): the list of gene symbols of interest.
 ```python
-genes = ["idua", "ace2", "brca"]
+genes = ["IDUA", "ACE2", "BRCA1"]
 sch.gene_search(genes)
 ```
 
