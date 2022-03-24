@@ -212,7 +212,7 @@ class Search:
                             'Source', 'Number of Homozygotes', 'Number of Hemizygotes', 'GATK Filter']
         for col in columns_to_drop:
             if col in dataframe.columns:
-                dataframe = dataframe.drop(col, 1)  
+                dataframe = dataframe.drop(col, axis=1)  
         return dataframe  
 
     
@@ -277,7 +277,8 @@ class Search:
 
         # Common variants
         same_indexes = set(final_df.index).intersection(set(abraom_df.index))
-        
+        same_indexes = list(same_indexes)
+
         if same_indexes:
             # Concatenate uncommon
             final_no_overlap = final_df.loc[~final_df.index.isin(same_indexes)]
