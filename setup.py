@@ -14,6 +14,7 @@ setup(
           'numpy>=1.19.0',
           'requests>=2.24.0',
           'seaborn',
+          'rpy2',
           'pynoma',
           'pyabraom'
       ],

@@ -190,14 +190,16 @@ class Search:
                                         'Location', 'Reference', 'Alternative'])
 
         if isinstance(self.resulting_dataframes["gnomad"], pd.DataFrame):
-            gnomad_processed = self.prepare_gnomad_integration()
-            Logger.integrating_gnomad_data()
-            final_df = pd.concat([final_df, gnomad_processed])
+            if not self.resulting_dataframes["gnomad"].empty:
+                gnomad_processed = self.prepare_gnomad_integration()
+                Logger.integrating_gnomad_data()
+                final_df = pd.concat([final_df, gnomad_processed])
 
         if isinstance(self.resulting_dataframes["abraom"], pd.DataFrame):
-            abraom_processed = self.prepare_abraom_integration()
-            Logger.integrating_abraom_data()
-            final_df = self.integrate_abraom(final_df, abraom_processed)
+            if not self.resulting_dataframes["abraom"].empty:
+                abraom_processed = self.prepare_abraom_integration()
+                Logger.integrating_abraom_data()
+                final_df = self.integrate_abraom(final_df, abraom_processed)
 
         final_df['rsID'] = final_df['rsID'].fillna('')
         final_df.index.name='Variant ID'
