@@ -204,7 +204,7 @@ class Search:
         final_df['rsID'] = final_df['rsID'].fillna('')
         final_df.index.name='Variant ID'
         Logger.done()
-        return final_df.fillna(0)
+        return self.cast_numeric_columns(final_df.fillna(0))
 
 
     def drop_columns(self, dataframe):
@@ -216,6 +216,14 @@ class Search:
         return dataframe  
 
     
+    def cast_numeric_columns(self, dataframe):
+        first_population_column = 7
+        cols_cast = {'Location': int}
+        for col in dataframe.columns[first_population_column:]:
+            cols_cast[col] = float
+        return dataframe.astype(cols_cast)
+
+
     def prepare_gnomad_integration(self):
         Logger.processing_gnomad_dataframe()
 
