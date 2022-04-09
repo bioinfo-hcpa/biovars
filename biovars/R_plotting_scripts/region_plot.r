@@ -202,7 +202,8 @@ plot_transcripts<-function(data,gene,start,end,transcript_region,canonical_color
   theme_genes()+
   theme(text=element_text(family="AvantGarde"),
         axis.text.y = element_text(size = 8, color='grey10',hjust=0),
-        legend.text = element_text(size=8),
+        legend.spacing.x = unit(1.0, 'cm'),
+        legend.text = element_text(size=8,margin = margin(l = -23)),
         legend.title = element_text(size=8),
         axis.text.x = element_text(),
         axis.line.x = element_blank(),
