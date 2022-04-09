@@ -67,7 +67,7 @@ barplot_population_variants <- function(num_total, num_common, num_private, pop_
   barplot_df$legend = factor(barplot_df$legend, levels = c("1","2","3"))
   
   if(map==FALSE){
-    title_size<-15
+    title_size<-12
     text_size<-10
   }
   if(map==TRUE){
