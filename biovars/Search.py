@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from copy import deepcopy
+import requests
 import pynoma
 import pyabraom
 
@@ -237,19 +238,26 @@ class Search:
         processed_df = self.resulting_dataframes["abraom"]
 
         Logger.building_variant_ids_for_abraom()
-        version = "hg38" if self.sources.version==38 else "hg19"
-        variant_id_freqs = pyabraom.Variant_ID_biovars(processed_df, version)
+        variant_id, location, reference, alternative = self.get_new_abraom_cols(processed_df)
         
         Logger.processing_abraom_dataframe()
-        processed_df = processed_df.rename(columns={'Position': 'Location'})
-        processed_df = self.drop_columns(processed_df)
+        processed_df = processed_df.rename(columns={
+                                        'Position': 'Location',
+                                        'Allele Frequency': 'Brazilian ABraOM'
+                                        })
 
-        processed_df['Variant ID'] = np.array(variant_id_freqs)[:,0]
-        processed_df['Brazilian ABraOM'] = np.array(variant_id_freqs)[:,1]
+        processed_df['Variant ID'] = variant_id
+        processed_df['Location'] = location
+        processed_df['Reference'] = reference
+        processed_df['Alternative'] = alternative
+
+
+        processed_df = self.drop_columns(processed_df)
             
         processed_df = processed_df.set_index('Variant ID')
         Logger.translating_abraom_variant_annotations()
-        processed_df['Annotation'] = self.translate_abraom_annotations(processed_df['Annotation'].values)
+        processed_df['Annotation'] = self.translate_abraom_annotations(
+                                            processed_df['Annotation'].values)
         return processed_df
 
 
@@ -279,8 +287,9 @@ class Search:
 
 
     def integrate_abraom(self, final_df, abraom_df):
-
-        if len(final_df) == 0:  # No previous dataframe was integrated to final_df
+        
+        # No previous dataframe was integrated to final_df
+        if len(final_df) == 0:
             return abraom_df
 
         # Common variants
@@ -301,7 +310,66 @@ class Search:
             common['Brazilian ABraOM'] = abraom_df.loc[same_indexes]['Brazilian ABraOM']
 
             # Concatenate everything ordering by Chromosome and Location
-            return pd.concat([uncommon, common]).sort_values(['Chromosome', 'Location'], ascending=[True, True])
+            return pd.concat([uncommon, common]).sort_values(
+                        ['Chromosome', 'Location'], ascending=[True, True])
         
         else:
             return pd.concat([final_df, abraom_df])
+
+
+    # New processed columns: 
+    # - Variant ID
+    # - Location (-1 for deletions)
+    # - Reference
+    # - Alternative
+    def get_new_abraom_cols(self, df):
+
+        variant_id = []
+        location = []
+        reference = []
+        alternative = []
+
+        for i in range(len(df)): 
+            
+            chromosome = df['Chromosome'][i]
+            loc = int(df['Position'][i])
+
+            # Not indel
+            if (df['Reference'][i] != '-') and (df['Alternative'][i] != '-'):
+                ref = df['Reference'][i]
+                alt = df['Alternative'][i]
+
+            # Insertion
+            elif df['Reference'][i] == '-':
+                ref = self.genome_ref_info(chromosome, loc)
+                alt = ref + df['Alternative'][i]
+
+            # Deletion
+            else:
+                loc -= 1
+                previous_nt = self.genome_ref_info(chromosome, loc) 
+                ref = previous_nt + df['Reference'][i]
+                alt = previous_nt
+            
+            variant_id.append(f"{chromosome}-{loc}-{ref}-{alt}")
+            location.append(loc)
+            reference.append(ref)
+            alternative.append(alt)
+
+        return variant_id, location, reference, alternative
+
+
+    def genome_ref_info(self, chromosome, location):
+
+        if self.sources.version == 38:
+            url = "https://rest.ensembl.org/sequence/region/human/%s:%d..%d:1?"
+        else:
+            url = "https://grch37.rest.ensembl.org/sequence/region/human/%s:%d..%d:1?"
+        
+        url = url % (chromosome, location, location)
+        request = requests.get(url, headers={ "Content-Type" : "text/plain"})
+
+        if not request.ok:
+            request.raise_for_status()
+            
+        return request.text
