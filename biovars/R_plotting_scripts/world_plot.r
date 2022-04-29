@@ -182,7 +182,7 @@ biovars_map<-function(current_dir, saving_path, plot_list){
   }
   
   # Legends
-  legend(x="bottomleft", legend=c("1.Total Variants", "2.Common Variants","3.Private Variants"),
+  legend(x="bottomleft", legend=c("1.Total Variants", "2.Shared Variants","3.Private Variants"),
          pch=16, col="grey", title="Variants distribution",cex=4.0,bty = "n")
   
   
