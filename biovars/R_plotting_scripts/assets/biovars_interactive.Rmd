@@ -439,43 +439,43 @@ afr=eur=fin=ami=asj=lat=mid=sas=eas=abra='no_plot'
 for(k in pop_info){
     if(k[1]=='African'){
     afr<-paste(paste("Total", k[2]),
-               paste("Common", k[3]),
+               paste("Shared", k[3]),
                paste("Private",k[4]), sep = "<br/>")}
     if(k[1]=='European (non-Finnish)'){
     eur<-paste(paste("Total",k[2]),
-               paste("Common",k[3]),
+               paste("Shared",k[3]),
                paste("Private",k[4]), sep = "<br/>")}
     if(k[1]=="European (Finnish)"){
     fin<-paste(paste("Total", k[2]),
-               paste("Common", k[3]),
+               paste("Shared", k[3]),
                paste("Private",k[4]), sep = "<br/>")}
     if(k[1]=='Amish'){
     ami<-paste(paste("Total", k[2]),
-               paste("Common", k[3]),
+               paste("Shared", k[3]),
                paste("Private",k[4]), sep = "<br/>")}
     if(k[1]=='Ashkenazi Jewish'){
     asj<-paste(paste("Total",k[2]),
-               paste("Common", k[3]),
+               paste("Shared", k[3]),
                paste("Private",k[3]), sep = "<br/>")}
     if(k[1]=='Latino'){
     lat<-paste(paste("Total", k[2]),
-               paste("Common", k[3]),
+               paste("Shared", k[3]),
                paste("Private",k[4]), sep = "<br/>")}
     if(k[1]=='Middle Eastern'){
     mid<-paste(paste("Total", k[2]),
-               paste("Common", k[3]),
+               paste("Shared", k[3]),
                paste("Private",k[4]), sep = "<br/>")}
     if(k[1]=='South Asian'){
     sas<-paste(paste("Total", k[2]),
-               paste("Common", k[3]),
+               paste("Shared", k[3]),
                paste("Private",k[4]), sep = "<br/>")}
     if(k[1]=='East Asian'){
     eas<-paste(paste("Total", k[2]),
-               paste("Common", k[3]),
+               paste("Shared", k[3]),
                paste("Private",k[4]), sep = "<br/>")}
     if((k[1]=='Brazilian ABraOM') && (abraom==TRUE)){
     abra<-paste(paste("Total", k[2]),
-               paste("Common", k[3]),
+               paste("Shared", k[3]),
                paste("Private",k[4]), sep = "<br/>")}
        
 }
