@@ -12,10 +12,13 @@
     - [Search by transcripts](#search-by-transcripts)
 - [Plotting the results](#plotting-the-results)
     - [Plotting data from Pynoma and PyABraOM](#plotting-data-from-pynoma-and-pyabraom) 
+- [BibTeX entry](#bibtex-entry) 
+- [Acknowledgement](#acknowledgement)
 
 
 ### Introduction
-BIOVARS is a Python API for joining all the other human variant retrival APIs built by the Bioinformatics Core of Hospital de Clínicas de Porto Alegre. With BIOVARS, it is possible to perform variant searches both in gnomAD and ABraOM databases, both that have their personal APIs (Pynoma and PyABraOM). In the future, more databases will be added to BIOVARS aiming to provide a greater level of data heterogeneity in a single centralized solution, which is easy to use and proper to automate complex bioinformatics pipelines.
+BIOVARS is a Python API for joining all the other human variant retrival APIs built by the Bioinformatics Core of Hospital de Clínicas de Porto Alegre. With BIOVARS, it is possible to perform variant searches both in gnomAD and ABraOM databases, both that have their personal APIs (Pynoma and PyABraOM). In the future, more databases will be added to BIOVARS aiming to provide a greater level of data heterogeneity in a single centralized solution, which is easy to use and proper to automate complex bioinformatics pipelines. If you have scientific interests or want to use our package in formal reports, we kindly ask you to cite us in your publication: [Carneiro, P., Colombelli, F., Recamonde-Mendoza, M., and Matte, U. (2022). Pynoma, PyABraOM and BIOVARS: Towards genetic variant data acquisition and
+integration. bioRxiv.](#bibtex-entry)
 
 ### Installation
 
@@ -140,3 +143,23 @@ sch = Search(src, verbose=True)
 sch.resulting_dataframes["gnomad"] = pynoma_df
 biovars_df = sch.integrate_data()
 ```
+
+## BibTeX entry
+
+```
+@article {Carneiro2022.06.07.495190,
+	author = {Carneiro, Paola and Colombelli, Felipe and Recamonde-Mendoza, Mariana and Matte, Ursula},
+	title = {Pynoma, PyABraOM and BIOVARS: Towards genetic variant data acquisition and integration},
+	elocation-id = {2022.06.07.495190},
+	year = {2022},
+	doi = {10.1101/2022.06.07.495190},
+	publisher = {Cold Spring Harbor Laboratory},
+	URL = {https://www.biorxiv.org/content/early/2022/06/09/2022.06.07.495190},
+	eprint = {https://www.biorxiv.org/content/early/2022/06/09/2022.06.07.495190.full.pdf},
+	journal = {bioRxiv}
+}
+```
+
+## Acknowledgement
+
+This research was supported by the National Council for Scientific and Technological Development (CNPq) and the Research Incentive Fund (FIPE) from Hospital de Clínicas de Porto Alegre.
