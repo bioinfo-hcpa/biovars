@@ -6,7 +6,7 @@ setup(
   license='GNU General Public License v3.0',
   description = "Tool for joining all the bioinfo-hcpa's variant information retrieval APIs.",   
   author = 'Felipe Colombelli, Paola Carneiro',                   
-  author_email = 'fcolombelli@inf.ufrgs.br, pa0labarcellosca@gmail.com',
+  author_email = 'bioinfo@hcpa.edu.br',
   url = 'https://github.com/bioinfo-hcpa/biovars',
   keywords = ['gnomad', 'api', 'variants', 'genes'],
   install_requires=[
