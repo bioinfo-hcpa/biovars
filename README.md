@@ -37,6 +37,11 @@ After that, if you want to utilize the BIOVARS Plotter class, you also need to i
     > pkgs <- c("ggplot2", "ggthemes", "gridExtra", "egg", "png", "grid", "cowboy", "patchwork", "httr", "jsonlite", "xml2", "dplyr", "RColorBrewer", "stringr", "gggenes")
     > install.packages(pkgs)
 
+#### R installation troubleshooting
+
+* `'GLIBCXX_3.4.30' not found`: see [this](https://stackoverflow.com/questions/72540359/glibcxx-3-4-30-not-found-for-librosa-in-conda-virtual-environment-after-tryin).
+* `.onLoad failed in loadNamespace() for 'tcltk'`: see [this](https://stackoverflow.com/a/39656834/12352538).
+
 ### Searching for variants
 
 The BIOVARS package can perform searches by genes, genome regions or transcripts. However, not all database sources accept the three types of searches, so a Sources object need to be created in order for this validation to occur.
