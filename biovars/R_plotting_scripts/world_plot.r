@@ -207,6 +207,6 @@ biovars_plot_list<- function(current_dir, saving_path, df, frequency=0.01, map=F
     num_unique_vars <- get_number_of_vars(pops_vars)
     plot_list <- get_all_plots(pops_vars, pop_colors,map)
     grid_plot <- cowplot::plot_grid(plotlist = plot_list, align = "hv") 
-    sink_output <- ggsave2(saving_path, grid_plot)
+    sink_output <- ggsave2(saving_path, grid_plot,width=10,height=8)
   }
 }
