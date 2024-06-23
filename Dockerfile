@@ -5,14 +5,17 @@ FROM rpy2/base-ubuntu
 RUN apt-get update && apt-get install -y \
     wget \
     git \
-    tar
+    tar \
+    libssl-dev
 
-# Download and install pynoma v0.2.0
-RUN wget -O pynoma-0.2.0.tar.gz https://github.com/bioinfo-hcpa/pynoma/archive/refs/tags/v0.2.0.tar.gz && \
+# Install pandoc
+RUN wget -O pandoc.deb https://github.com/jgm/pandoc/releases/download/3.2/pandoc-3.2-1-amd64.deb && \
+    dpkg -i pandoc.deb
+
+# Download and install pynoma v0.2.1
+RUN wget -O pynoma-0.2.1.tar.gz https://github.com/bioinfo-hcpa/pynoma/archive/refs/tags/v0.2.1.tar.gz && \
     tar -xzf pynoma-0.2.1.tar.gz && \
-    cd pynoma-0.2.0 && \
-    pip3 install .
-
+    pip install ./pynoma-0.2.1/
 
 # Download and install pyABraOM v0.2.0
 RUN wget -O pyABraOM-0.2.0.tar.gz https://github.com/bioinfo-hcpa/pyABraOM/archive/refs/tags/v0.2.0.tar.gz && \

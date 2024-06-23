@@ -2,11 +2,12 @@ import argparse
 from .Logger import Logger
 
 def install_r_packages():
-    # try:
-    #     from rpy2.robjects.packages import importr
-    # except ImportError:
-    #     Logger.error_r_post_install()
-    #     return
+    try:
+        from rpy2.robjects.packages import importr
+    except ImportError:
+        Logger.error_r_post_install()
+        return
+
     from rpy2.robjects.packages import importr
 
     utils = importr('utils')
@@ -27,6 +28,8 @@ def install_r_packages():
         'RColorBrewer',
         'stringr',
         'gggenes',
+        'plotly',
+        'DT',
         'rmarkdown'
     ]
 
