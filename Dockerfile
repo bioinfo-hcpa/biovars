@@ -22,9 +22,10 @@ RUN wget -O pyABraOM-0.2.0.tar.gz https://github.com/bioinfo-hcpa/pyABraOM/archi
     tar -xzf pyABraOM-0.2.0.tar.gz && \
     pip install ./pyABraOM-0.2.0/
 
-# Install biovars from the latest GitHub repository
-RUN git clone https://github.com/bioinfo-hcpa/biovars.git && \
-    pip install ./biovars/[plots]
+# Download and install BIOVARS v0.2.0
+RUN wget -O biovars-0.2.0.tar.gz https://github.com/bioinfo-hcpa/biovars/archive/refs/tags/v0.2.0.tar.gz && \
+    tar -xzf biovars-0.2.0.tar.gz && \
+    pip install ./biovars-0.2.0/
 
 # Install R packages
 RUN biovars -R
