@@ -4,16 +4,20 @@
 
 ## Summary
 
-- [Introduction](#introduction)
-- [Installation](#installation)
-- [Searching for variants](#searching-for-variants)
-    - [Search by genes](#search-by-genes)
-    - [Search by regions](#search-by-regions)
-    - [Search by transcripts](#search-by-transcripts)
-- [Plotting the results](#plotting-the-results)
-    - [Plotting data from Pynoma and PyABraOM](#plotting-data-from-pynoma-and-pyabraom) 
-- [BibTeX entry](#bibtex-entry) 
-- [Acknowledgement](#acknowledgement)
+- [BIOVARS](#biovars)
+  - [Summary](#summary)
+    - [Introduction](#introduction)
+    - [Installation](#installation)
+    - [Docker](#docker)
+      - [R installation troubleshooting](#r-installation-troubleshooting)
+    - [Searching for variants](#searching-for-variants)
+      - [Search by genes](#search-by-genes)
+      - [Search by regions](#search-by-regions)
+      - [Search by transcripts](#search-by-transcripts)
+    - [Plotting the results](#plotting-the-results)
+    - [Plotting data from Pynoma and PyABraOM](#plotting-data-from-pynoma-and-pyabraom)
+  - [BibTeX entry](#bibtex-entry)
+  - [Acknowledgement](#acknowledgement)
 
 
 ### Introduction
@@ -22,20 +26,24 @@ integration. bioRxiv.](#bibtex-entry)
 
 ### Installation
 
-Currently there is not a PyPI version for the APIs, so the installation needs that you clone their repository and install them as local packages.
+Users can install BIOVARS without the plotting functionalities that require an rpy2/R setup. This is the default installation mode for BIOVARS. Although we have a PyPI package available, for installing the lastest version of the code, users need to clone the GitHub repositories and install them locally: 
 
     $ git clone https://github.com/bioinfo-hcpa/pynoma.git
     $ git clone https://github.com/bioinfo-hcpa/pyABraOM.git
     $ git clone https://github.com/bioinfo-hcpa/biovars.git
-    $ pip install -e pynoma
-    $ pip install -e pyABraOM
-    $ pip install -e biovars
+    $ pip install pynoma
+    $ pip install pyABraOM
+    $ pip install biovars
     
-After that, if you want to utilize the BIOVARS Plotter class, you also need to install R (widely SO-dependent, thus not covered here) and all the packages used for building the plots.
+If instead you want to use BIOVARS plotting functionalities, you need to install it with the `[plots]` extras and then install the required R packages:
 
-    $ R
-    > pkgs <- c("ggplot2", "ggthemes", "gridExtra", "egg", "png", "grid", "cowboy", "patchwork", "httr", "jsonlite", "xml2", "dplyr", "RColorBrewer", "stringr", "gggenes")
-    > install.packages(pkgs)
+    $ pip install biovars[plots]
+    $ biovars --install-r-packages
+
+### Docker
+
+Since `rpy2` could be troublesome to properly setup on particular environments, we also provide a Docker container with which users can painlessly run BIOVARS code through. Be aware, though, that we do not provide support for Docker installation and usage, as this is a tool on its own and users should seek guidance on the appropriate technology forums, avoiding posting Docker-related issues here. 
+
 
 #### R installation troubleshooting
 
@@ -66,21 +74,21 @@ sch = Search(src, verbose=True)
 The gene_search method expects as parameter a list of genes (list[str]): the list of gene symbols of interest.
 ```python
 genes = ["IDUA", "ACE2", "BRCA1"]
-sch.gene_search(genes)
+df = sch.gene_search(genes)
 ```
 
 #### Search by regions
 The region_search method expects as parameter a list of genome regions (list[str]): each item composed of "chromosome-start_region-end_region".
 ```python
 regions = ["4-987010-1001021", "X-15561033-15602100"]
-sch.region_search(regions)
+df = sch.region_search(regions)
 ```
 
 #### Search by transcripts
 The transcript_search method expects as parameter a list of transcripts (list[str]): the list of ensembl transcript ids of interest.
 ```python
 transcripts = ["ENST00000252519", "ENST00000369985"]
-sch.transcript_search(transcripts)
+df = sch.transcript_search(transcripts)
 ```
 
 ### Plotting the results
