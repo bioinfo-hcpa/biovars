@@ -6,25 +6,28 @@
 
 - [BIOVARS](#biovars)
   - [Summary](#summary)
-    - [Introduction](#introduction)
-    - [Installation](#installation)
-      - [R installation troubleshooting](#r-installation-troubleshooting)
-    - [Docker](#docker)
-    - [Searching for variants](#searching-for-variants)
-      - [Search by genes](#search-by-genes)
-      - [Search by regions](#search-by-regions)
-      - [Search by transcripts](#search-by-transcripts)
-    - [Plotting the results](#plotting-the-results)
-    - [Plotting data from Pynoma and PyABraOM](#plotting-data-from-pynoma-and-pyabraom)
+  - [Introduction](#introduction)
+  - [Installation](#installation)
+    - [R installation troubleshooting](#r-installation-troubleshooting)
+  - [Docker](#docker)
+    - [Prerequisites](#prerequisites)
+    - [Pulling the Docker Image](#pulling-the-docker-image)
+    - [Running Your Python Scripts](#running-your-python-scripts)
+  - [Searching for variants](#searching-for-variants)
+    - [Search by genes](#search-by-genes)
+    - [Search by regions](#search-by-regions)
+    - [Search by transcripts](#search-by-transcripts)
+  - [Plotting the results](#plotting-the-results)
+  - [Plotting data from Pynoma and PyABraOM](#plotting-data-from-pynoma-and-pyabraom)
   - [BibTeX entry](#bibtex-entry)
   - [Acknowledgement](#acknowledgement)
 
 
-### Introduction
+## Introduction
 BIOVARS is a Python API for joining all the other human variant retrival APIs built by the Bioinformatics Core of Hospital de Clínicas de Porto Alegre. With BIOVARS, it is possible to perform variant searches both in gnomAD and ABraOM databases, both that have their personal APIs (Pynoma and PyABraOM). In the future, more databases will be added to BIOVARS aiming to provide a greater level of data heterogeneity in a single centralized solution, which is easy to use and proper to automate complex bioinformatics pipelines. If you have scientific interests or want to use our package in formal reports, we kindly ask you to cite us in your publication: [Carneiro, P., Colombelli, F., Recamonde-Mendoza, M., and Matte, U. (2022). Pynoma, PyABraOM and BIOVARS: Towards genetic variant data acquisition and
 integration. bioRxiv.](#bibtex-entry)
 
-### Installation
+## Installation
 
 Users can install BIOVARS without the plotting functionalities that require an rpy2/R setup. This is the default installation mode for BIOVARS. Although we have a PyPI package available, for installing the lastest version of the code, users need to clone the GitHub repositories and install them locally: 
 
@@ -41,18 +44,57 @@ If instead you want to use BIOVARS plotting functionalities, you need to install
     $ biovars --install-r-packages
 
 
-#### R installation troubleshooting
+### R installation troubleshooting
 
 * `'GLIBCXX_3.4.30' not found`: see [this](https://stackoverflow.com/questions/72540359/glibcxx-3-4-30-not-found-for-librosa-in-conda-virtual-environment-after-tryin).
 * `.onLoad failed in loadNamespace() for 'tcltk'`: see [this](https://stackoverflow.com/a/39656834/12352538).
 
 
-### Docker
+## Docker
 
 Since `rpy2` could be troublesome to properly setup on particular environments, we also provide a Docker container with which users can painlessly run BIOVARS code through. Be aware, though, that we do not provide support for Docker installation and usage, as this is a tool on its own and users should seek guidance on the appropriate technology forums, avoiding posting Docker-related issues here. 
 
+### Prerequisites
 
-### Searching for variants
+Ensure Docker is properly installed on your machine. Installation guides are available on the [Docker official website](https://docs.docker.com/get-docker/).
+
+### Pulling the Docker Image
+
+Pull the BIOVARS Docker image using the command:
+
+  ```bash
+  docker pull fecolombelli/biovars:latest
+  ```
+
+### Running Your Python Scripts
+
+When using the Docker container to run Python scripts that generate and save files, such as the plotting functionalities in BIOVARS, it's crucial to manage file paths correctly. Many BIOVARS methods require specifying an output path for saving plots or other data files. Here’s how to ensure that these files are correctly saved to your host system and not just inside the container:
+
+- **Volume Mounting**: The command provided mounts your local directory to the container. Use:
+  ```bash
+  docker run --rm -v /directory/of/your/python/code:/workspace fecolombelli/biovars:latest python3 /workspace/your_script.py
+  ```
+  This setup uses the `-v` option to map `/path/to/your/python/code` on your host to `/workspace` inside the container. This mapping allows files created by your script inside the container to be saved directly to your host machine.
+
+- **Specifying Output Paths in Scripts**: When your script saves a file, ensure the path in the script points to a location within /workspace, the directory inside the container.  For example, if you intend to use the world plot, your script might include something like:
+  ```python
+  plt.plot_world("/workspace/output/world_plot_idua.png", 0.01)
+  ```
+
+  Make sure that the corresponding output directory (`/path/to/your/python/code/output`) exists on your host, or adjust your script to create it if it doesn't:
+  ```python
+  import os
+  output_dir = '/workspace/output'
+  os.makedirs(output_dir, exist_ok=True)
+  plt.plot_world("/workspace/output/world_plot_idua.png", 0.01)
+  ```
+
+- **Accessing Output Files**: After running your script, any files written to `/workspace/output` in the container are accessible in `/path/to/your/python/code/output` on your host machine.
+
+This approach ensures that you can seamlessly run BIOVARS scripts that require file outputs, manage these files from your host system, and maintain the integrity and accessibility of your data. Remember, the paths you use in your scripts for reading and writing need to be consistent with the mounted directories specified in the Docker command.
+
+
+## Searching for variants
 
 The BIOVARS package can perform searches by genes, genome regions or transcripts. However, not all database sources accept the three types of searches, so a Sources object need to be created in order for this validation to occur.
 Currently there are only two databases, but in the future more will be added.
@@ -72,28 +114,28 @@ src = Sources(ref_genome_version="hg38", gnomad=True, abraom=True)
 sch = Search(src, verbose=True)
 ```
 
-#### Search by genes
+### Search by genes
 The gene_search method expects as parameter a list of genes (list[str]): the list of gene symbols of interest.
 ```python
 genes = ["IDUA", "ACE2", "BRCA1"]
 df = sch.gene_search(genes)
 ```
 
-#### Search by regions
+### Search by regions
 The region_search method expects as parameter a list of genome regions (list[str]): each item composed of "chromosome-start_region-end_region".
 ```python
 regions = ["4-987010-1001021", "X-15561033-15602100"]
 df = sch.region_search(regions)
 ```
 
-#### Search by transcripts
+### Search by transcripts
 The transcript_search method expects as parameter a list of transcripts (list[str]): the list of ensembl transcript ids of interest.
 ```python
 transcripts = ["ENST00000252519", "ENST00000369985"]
 df = sch.transcript_search(transcripts)
 ```
 
-### Plotting the results
+## Plotting the results
 
 BIOVARS offers plotting methods coded in R (interfaced by rpy2) for summarizing the searches results made with the package.
 For using any of the plotting methods, the Plotter class needs to be initialized in an object, giving as input a BIOVARS resulting datframe and the genome version used in the searches that generated the data.
@@ -144,7 +186,7 @@ Generates an HTML file containing the above plots and a table with the Search re
 plt.plot_summary("/home/user/path/", "idua", 987027, 987068, 0.01)
 ```
 
-### Plotting data from Pynoma and PyABraOM
+## Plotting data from Pynoma and PyABraOM
 
 If the user wants to use the Plotter functionalities on data generated by Pynoma or PyABraOM APIs, they first need to convert this data to the BIOVARS format and then utilize the desired Plotter methods.
 For converting the dataframes, the _Search.integrate_data()_ method can be used after directly modifying the _Search.resulting_dataframes_ attribute, which is a dictionary containing two keys: **"gnomad"** and **"abraom"**.
