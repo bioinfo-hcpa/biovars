@@ -8,6 +8,20 @@ class Logger:
     handler = logging.getLogger("biovars")
 
     @classmethod
+    def warning_r_post_install(self):
+        log = "rpy2 is required to use the plotting functionality. If you want to use it, make sure to install" \
+        "biovars with 'plots' extras using `pip install biovars[plots]` and running `biovars --install-r-packages`."
+        Logger.handler.warning(log)
+        return
+    
+    @classmethod
+    def error_r_post_install(self):
+        log = "rpy2 is required to use the plotting functionality. If you want to use it, make sure to install" \
+        "biovars with 'plots' extras using `pip install biovars[plots]` and running `biovars --install-r-packages`."
+        Logger.handler.error(log)
+        return
+
+    @classmethod
     def invalid_search_all_false(self):
         log = "Invalid chosen sources: at least one should be set to True."
         Logger.handler.info(log)
