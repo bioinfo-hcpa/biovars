@@ -82,17 +82,19 @@ biovars_plot<- function(data,start,end,mut=F){
     gene=data$Gene[1]
     if(mut==F){
       h<-ggplot(info,aes(x=ID,y=Population,fill=Frequency))+
-        geom_tile(colour="grey95",size=0.7)+
-        scale_fill_gradientn(colours = c('grey100',brewer.pal(name='BuPu',n=8)), values = c(0, 0.0001, 1))+
-        coord_fixed(ratio = 0.9)+
+        geom_tile(colour="grey95",size=0.5)+
+        scale_fill_gradientn(colours = c('grey100',brewer.pal(name='Reds',n=8)), values = c(0, 0.0001, 1))+
+        coord_fixed(ratio = 1.2)+
         scale_y_discrete(expand=c(0,0))+
         scale_x_discrete(expand=c(0,0))+
         labs(x="Variant_ID",y="")+
         guides(fill = guide_colourbar(barwidth = 1.0, barheight = 7))+
         theme(text=element_text(family="AvantGarde"),
-              axis.text.y = element_text(size = 8, color='grey10',hjust=0),
-              axis.text.x = element_text(size = 7, angle= 70,vjust = 0.5, hjust=1,color='grey10', margin = margin(t = 2, r = 20, b = 2, l = 0)),
-              axis.title.x= element_text(size = 10, color='grey10',margin = margin(1.5,0,0,0,unit="cm"),face = "bold",))
+              axis.text.y = element_text(size = 12, color='grey10',hjust=0),
+              legend.text = element_text(size=12),
+              legend.title =  element_text(size=12),
+              axis.text.x = element_text(size = 9, angle= 70,vjust = 0.5, hjust=1,color='grey10', margin = margin(t = -23, r = 20, b = 2, l = 0)),
+              axis.title.x= element_text(size = 10, color='grey10',margin = margin(1.5,0,0,0,unit="cm"),face = "bold"))
       return(h)}
     if(mut==T){
       colours=c('No Variant'='grey95',
@@ -113,18 +115,18 @@ biovars_plot<- function(data,start,end,mut=F){
                 "upstream"='magenta')
       h<-ggplot(info,aes(ID,Population,fill=Annotation))+
         geom_tile(colour="white",size=0.5)+
-        coord_fixed(ratio = 0.9)+
+        coord_fixed(ratio = 1.2)+
         scale_fill_manual(values = colours) +
         labs(x="Position",y="")+
         theme(text=element_text(family="AvantGarde"),
-              axis.text.y = element_text(size = 8, color='grey10',hjust=0),
+              axis.text.y = element_text(size = 12, color='grey10',hjust=0),
               panel.background = element_blank(),
-              legend.text = element_text(size=8),
+              legend.text = element_text(size=12),
               legend.position = "bottom",
-              legend.title = element_text(size=8),
-              axis.text.x = element_text(size = 7, angle= 70,vjust = 0.5, hjust=1,color='grey10', margin = margin(t = 2, r = 20, b = 2, l = 0)),
+              legend.title = element_text(size=12),
+              axis.text.x = element_text(size = 9, angle= 70,vjust = 0.5, hjust=1,color='grey10', margin = margin(t = -23, r = 20, b = 2, l = 0)),
               axis.title.x= element_text(size = 10, color='grey10',margin = margin(1.5,0,0,0,unit="cm"),face = "bold",))
-      h<-h+guides(fill=guide_legend(nrow=2,byrow=TRUE))
+      #h<-h+guides(fill=guide_legend(nrow=2,byrow=TRUE))
       return(h)}}}
 
 
@@ -148,8 +150,8 @@ ensembl_info <- function(gene,version){
 #get the data 
 transcript_info <-function(data,version,gene,start,end,
                           transcript_region,
-                          canonical_color="#b3cde3", 
-                          ncanonical_color="#8856a7"){
+                          canonical_color="orange", 
+                          ncanonical_color="lightblue"){
   gene=toupper(gene)
   resu<-ensembl_info(gene,version)
   value<-as.numeric(rownames(subset(resu,resu$Transcript.is_canonical==1)))
@@ -195,27 +197,30 @@ transcript_info <-function(data,version,gene,start,end,
 
 # Plot transcript information
 plot_transcripts<-function(data,gene,start,end,transcript_region,canonical_color, ncanonical_color){
+  #condition to arrow 
+  data$strand <- data$strand == 1
+  
   t<-ggplot(data, aes(xmin = start, xmax = end, y = Transcript_ID,fill=Type, forward = strand)) +
   geom_gene_arrow()+
   scale_fill_manual(values=c(canonical_color, ncanonical_color))+
   geom_gene_arrow(arrowhead_height = unit(3.5, "mm"), arrowhead_width = unit(3.5, "mm"))+
   theme_genes()+
   theme(text=element_text(family="AvantGarde"),
-        axis.text.y = element_text(size = 8, color='grey10',hjust=0),
+        axis.text.y = element_text(size = 12, color='grey10',hjust=1),
         legend.spacing.x = unit(1.0, 'cm'),
-        legend.text = element_text(size=8,margin = margin(l = -23)),
-        legend.title = element_text(size=8),
-        axis.text.x = element_text(),
+        legend.text = element_text(size=12),
+        legend.title = element_text(size=12),
+        axis.text.x = element_text(size=9),
         axis.line.x = element_blank(),
         axis.ticks.x = element_blank(),
         axis.title.y=element_blank(),
         panel.border = element_blank())
   if(transcript_region==FALSE){
     t<-t+annotate("rect", xmin=as.numeric(start), xmax=as.numeric(end), ymin=1, ymax=Inf, 
-                  alpha=0.4, fill="blue",colour='grey')
+                  alpha=0.2, fill="blue",colour='grey')
   }
 
-  t<-t+guides(fill=guide_legend(nrow=1,byrow=TRUE))
+  t<-t+guides(fill=guide_legend(nrow=1,byrow=T))
 }
 
 #Get legend 
@@ -238,31 +243,24 @@ get_legend<-function(h){
 heat_region_plot <- function(saving_path, data, 
                               version, start, end, mut,
                               transcript_region=TRUE,
-                              canonical_color="#b3cde3",
-                              ncanonical_color="#8856a7"){
+                              canonical_color="orange2",
+                              ncanonical_color="lightblue"){
 
   abraom='Brazilian ABraOM' %in% colnames(data) # we do not need it anymore.
   heat<-biovars_plot(data,start,end,mut)
   data<-data[(data$Location> start & data$Location<end),]
   gene<- unique(data$Gene)
   if (length(gene)==1 && gene != 'None'){
-    legendheat<-get_legend(heat)
-    heat <- heat + theme(legend.position="none")
+    #legendheat<-get_legend(heat)
+    heat <- heat + theme(legend.position="right")
     if(mut==T){ legend_pos="left"}else{legend_pos="top"}
     trasncripts_annotation<- transcript_info(data,version,gene,as.numeric(start),
                                             as.numeric(end),transcript_region,
                                             canonical_color, ncanonical_color)
-    trasncripts_annotation<-trasncripts_annotation+guides(fill=guide_legend(title.position = legend_pos))
-    legendtranscript<-get_legend(trasncripts_annotation)
-    trasncripts_annotation <- trasncripts_annotation + theme(legend.position="none")
-    legend<- rbind(legendheat, legendtranscript)
-    g<-plot_grid(heat, trasncripts_annotation, nrow = 2, rel_heights = c(1/2.5, 1/4))
-    if(mut==F){
-       ga <- plot_grid(g ,legend, ncol = 2,rel_widths = c(1/1,1/6))
-    }else{
-      ga <- plot_grid(g ,legend, nrow = 2, rel_heights = c(1/2, 1/9))
-    }
-    ggsave(file=saving_path, ga, width = 15, height = 8)
+    trasncripts_annotation<-trasncripts_annotation+guides(fill=guide_legend(title.position = 'top'))
+    trasncripts_annotation <- trasncripts_annotation + theme(legend.position="right")
+    g<-plot_grid(heat, trasncripts_annotation, nrow = 2, rel_heights = c(1/2.1, 1/2.5))
+    ggsave(file=saving_path, g, width = 15, height = 8)
 
   } else{
     g<-grid.arrange(heat)
