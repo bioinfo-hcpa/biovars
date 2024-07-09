@@ -12,6 +12,7 @@ __pycache__/
 
 # R data
 .RData
+.DS_Store
 
 # Distribution / packaging
 .Python
