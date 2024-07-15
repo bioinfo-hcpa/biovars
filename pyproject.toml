@@ -9,7 +9,7 @@ namespaces = false
 
 [project]
 name = "biovars"
-version = "0.0.1"
+version = "0.1.0"
 description = "Tool for joining all the bioinfo-hcpa's variant information retrieval APIs."
 readme = "README.md"
 authors = [
@@ -19,11 +19,10 @@ authors = [
 license = {file = "LICENSE"}
 keywords = ["gnomad", "api", "variants", "genes"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Build Tools",
-    "License :: OSI Approved :: GNU General Public License v3.0",
-    "Programming Language :: Python :: 3.6"
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3.8"
 ]
 
 dependencies = [
