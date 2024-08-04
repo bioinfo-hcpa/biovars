@@ -9,7 +9,7 @@ namespaces = false
 
 [project]
 name = "biovars"
-version = "0.1.1"
+version = "0.2.0"
 description = "Tool for joining all the bioinfo-hcpa's variant information retrieval APIs."
 readme = "README.md"
 authors = [
